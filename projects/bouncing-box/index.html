@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Bouncing Box</title>
+	<script src="jquery.min.js"></script>
+
+<!-- 	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> -->
+
+	<!-- BEGIN CSS -->
+	<style>
+		/* TODO 1 */
+		.box {
+			display: block;
+			position: absolute;
+			width: 70px;
+			height: 70px;
+			top: 100px;
+			left: 0px;
+			background-image: linear-gradient(to right,#fce4ed,#36eaef);
+			font-size: 300%;
+			text-align: center;
+		}
+		body {
+			background-color: black;
+			width: 100%;
+			height: 100%;
+		}
+	</style>
+
+</head>
+<body class="board">
+	<!-- HTML for the box -->
+	<div class="box">?</div>
+	<!-- BEGIN JAVASCRIPT -->
+	<script>
+		(function(){
+			'use strict'
+			/* global &*/
+
+			// jQuery stuff setup for you
+			var box = $('.box');
+			var boardWidth = $('.board').width();
+			var boardHeight = $(window).height();
+			// TODO 2 - Variable declarations 
+			
+			var position;		
+			var points;			
+			var speed;
+			var direction;
+			var y;
+			direction = 1;
+			
+			box.css('left', position);
+			box.css('top', y);
+			box.text(points);
+			
+			y = 0;
+			position = 0;
+			points = 0;
+			speed = 1;
+			
+			
+			var update = function() {
+				// TODO 3 / 6 / 7 / 8
+				position = position + (speed * direction);
+				
+				box.css('left', position);
+				if(position >= boardWidth) {
+					direction = -1;
+				}
+				if(position <= 0) {
+					direction = 1;
+				}
+			};
+			var yAxis = function() {
+				console.log("Box from window Height : " + y);
+				console.log("Window Height : " + boardHeight);
+				y = y + (speed * direction);
+				
+				box.css('top' , y);
+				if(y >= boardHeight) {
+					y = y - (speed * direction);
+				}
+				if(y < (0 - speed)) {
+					y = (0 - speed);
+				}
+				if(y === (0 - speed)) {
+					y = y + (speed * direction);
+				}
+
+			};
+			
+			var handleBoxClick = function() {
+				// TODO 4 / 5
+				points = points + 1;
+				box.text(points);
+				position = 0;
+				speed = speed + 1;
+				
+			};
+
+			//this executes the update function code every 50 milliseconds
+			setInterval(update, 5);
+			setInterval(yAxis , 5);
+			// this executes the handleBoxClick function code every time the box is clicked on
+			box.on('click', handleBoxClick);
+		})();
+	</script>
+</body>
+</html>
