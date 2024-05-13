@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TheScoutRunner Website</title>
+    <meta content="TheScoutRunner's Website" property="og:title" />
+    <meta content="TheScoutRunner's website that will have stuff later." property="og:description" />
+    <meta content="scoutrunner.servegame.com" property="og:url" />
+    <meta content="/images/me.jpg" property="og:image" />
+    <meta content="#0968f8" data-react-helmet="true" name="theme-color" />
+    <link rel="icon" type="image/x-icon" href="/images/me.ico">
+    <style>
+        #catContainer {
+            justify-content: center;
+            align-items: center;
+            height: fit-content;
+            text-align: center;
+        }
+
+        #catImage {
+            width: 30%;
+            height: 30%;
+            display: none;
+            
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: auto;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        nav {
+            background-color: #444;
+            padding: 10px 0;
+            text-align: center;
+        }
+        nav a {
+            text-decoration: none;
+            color: #fff;
+            padding: 0 10px;
+            transition: color 0.3s ease;
+        }
+        nav a:hover {
+            color: #ffcc00;
+        }
+        section {
+            padding: 20px;
+            background-color: #fff;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        .center {
+            text-align: center;
+        }
+        .collapse-label {
+            cursor: pointer;
+            color: blue;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to My Website</h1>
+    </header>
+    <nav>
+        <a href="#">Home</a>
+        <a href="#">About</a>
+        <a href="#">Services</a>
+        <a href="#">Contact</a>
+    </nav>
+    <section>
+        <h2>About Me</h2>
+        <p>lmao</p>
+    </section>
+    <section>
+        <h2>Services</h2>
+        <p>I do stuff</p>
+    </section>
+    <section>
+        <h2>Contact Me</h2>
+        <p>Homeless :(</p>
+    </section>
+    <div id="catContainer">
+        <button id="toggleButton">Click me :)</button>
+        <br><br>
+        <img id="catImage" src="https://soggy.cat/img/soggycat.webp" alt="Soggy Cat">
+    </div>
+    
+    <script>
+        const toggleButton = document.getElementById('toggleButton');
+        const catImage = document.getElementById('catImage');
+        catImage.style.display = 'none'
+        
+        toggleButton.addEventListener('click', function() {
+            if (catImage.style.display === 'none') {
+                toggleButton.innerText = "bingus :)"
+                catImage.style.display = 'ruby';
+            } else {
+                toggleButton.innerText = "sealed away for eternity"
+                catImage.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
