@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script> function moxfieldOnMessage(e){const t=e.data;if("object"==typeof t&&"moxfield"===t.type){const e=document.getElementById(t.id);e&&(e.style.height=t.data+"px")}}function moxfieldOnLoad(e){e.target&&e.target.contentWindow&&e.target.contentWindow.postMessage({type:"moxfield",data:e.target.id},"*")}window.addEventListener("message",moxfieldOnMessage); </script>
+    <script> function moxfieldOnMessage(e){const t=e.data;if("object"==typeof t&&"moxfield"===t.type){const e=document.getElementById(t.id);e&&(e.style.height="auto")}}function moxfieldOnLoad(e){e.target&&e.target.contentWindow&&e.target.contentWindow.postMessage({type:"moxfield",data:e.target.id},"*")}window.addEventListener("message",moxfieldOnMessage); </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TheScoutRunner's Website</title>
