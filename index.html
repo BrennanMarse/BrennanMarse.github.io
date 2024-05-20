@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script> function moxfieldOnMessage(e){const t=e.data;if("object"==typeof t&&"moxfield"===t.type){const e=document.getElementById(t.id);e&&(e.style.height=t.data+"px")}}function moxfieldOnLoad(e){e.target&&e.target.contentWindow&&e.target.contentWindow.postMessage({type:"moxfield",data:e.target.id},"*")}window.addEventListener("message",moxfieldOnMessage); </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TheScoutRunner Website</title>
@@ -87,6 +88,13 @@
         <a href="#">Contact</a>
     </nav>
     <section>
+        <iframe 
+            src="https://www.moxfield.com/embed/9OntxpFr0E-M7h_OtgSvcA" 
+            id="moxfield-frame-1" 
+            frameBorder="0" 
+            width="700px" 
+            onload="moxfieldOnLoad(event)">
+        </iframe>
         <h2>About Me</h2>
         <p>lmao</p>
     </section>
