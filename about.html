@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TheScoutRunner's Website</title>
+    <meta content="TheScoutRunner's Website" property="og:title" />
+    <meta content="TheScoutRunner's personal website with things to see." property="og:description" />
+    <meta content="thescoutrunner.com" property="og:url" />
+    <meta content="/images/me.jpg" property="og:image" />
+    <meta content="#0968f8" data-react-helmet="true" name="theme-color" />
+    <link rel="icon" type="image/x-icon" href="/images/me.ico">
+    <style>
+        #catContainer {
+            justify-content: center;
+            align-items: center;
+            height: fit-content;
+            text-align: center;
+        }
+        iframe {
+            width: 100%;
+            border: none;
+        }
+        #catImage {
+            width: 30%;
+            height: 30%;
+            display: none;
+            
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: auto;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        nav {
+            background-color: #444;
+            padding: 10px 0;
+            text-align: center;
+        }
+        nav a {
+            text-decoration: none;
+            color: #fff;
+            padding: 0 10px;
+            transition: color 0.3s ease;
+        }
+        nav a:hover {
+            color: #ffcc00;
+        }
+        section {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            overflow: hidden;
+            background-color: #fff;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        #options {
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        color: #333;
+        width: 100%;
+        max-width: 300px; /* Set a maximum width */
+        }
+        /* Style the dropdown arrow */
+        #options::after {
+            content: '\25BC';
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+        .center {
+            text-align: center;
+        }
+        .collapse-label {
+            cursor: pointer;
+            color: blue;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to my website :)</h1>
+    </header>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="#">About</a>
+    </nav>
+    <section>
+        <h1>About</h1>
+        <body> This is just a personal project I made to flex my knowlege on coding languages. :)</body>
+        
+    </section>
+</body>
+</html>
