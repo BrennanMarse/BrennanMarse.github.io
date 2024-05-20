@@ -92,6 +92,16 @@
             transform: translateY(-50%);
             pointer-events: none;
         }
+        #toggleButton {
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        color: #333;
+        width: 100%;
+        max-width: 300px; 
+        }
         .center {
             text-align: center;
         }
@@ -146,6 +156,8 @@
                 catImage.style.display = 'ruby';
             } else {
                 toggleButton.innerText = "sealed away for eternity"
+                toggleButton.style.color = "gray"
+                toggleButton.disabled = true;
                 catImage.style.display = 'none';
             }
         });
