@@ -162,6 +162,8 @@
 
         // Load sets from sets.json file
         $.getJSON('./data/sets.json', function(sets) {
+            var setsProcessed = 0;
+
             sets.forEach(function(set) {
                 $.ajax({
                     type: 'GET',
@@ -191,8 +193,10 @@
                             }
                         });
 
-                        // Alphabetize the results and then display them
-                        if (sets.indexOf(set) === sets.length - 1) {
+                        // Check if all sets have been processed
+                        setsProcessed++;
+                        if (setsProcessed === sets.length) {
+                            // Alphabetize the results and then display them
                             matchingCards.sort((a, b) => {
                                 if (a.name.localeCompare(b.name) !== 0) {
                                     return a.name.localeCompare(b.name);
