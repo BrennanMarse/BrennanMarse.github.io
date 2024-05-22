@@ -201,7 +201,7 @@
 
     function matchesSearchWords(cardName, searchWords) {
         var cardWords = cardName.split(/\s+/);
-        return searchWords.some(word => cardWords.includes(word));
+        return searchWords.some(word => cardWords.includes(word.toLowerCase()));
     }
 
     function fetchCardImage(cardData) {
