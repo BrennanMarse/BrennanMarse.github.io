@@ -199,16 +199,16 @@
     function fetchCardImage(cardData) {
         var apiUrl = 'https://api.scryfall.com/cards/named?exact=' + encodeURIComponent(cardData.name) + '&set=' + encodeURIComponent(cardData.setCode);
         $.getJSON(apiUrl, function(data) {
-            var cardCellHTML = '<div class="card-cell" onclick=\'openCardDetails(' + JSON.stringify(cardData) + ')\'>';
-            if (data && data.image_uris && data.image_uris.small) {
-                cardCellHTML += '<img src="' + data.image_uris.small + '" alt="' + cardData.name + '" class="card-image">';
+            var cardCellHTML = '<div class="card-cell" onclick=\'openCardDetails(' + JSON.stringify(cardData).replace(/'/g, "\\'") + ')\'>';
+            if (data && data.image_uris && data.image_uris.normal) {
+                cardCellHTML += '<img src="' + data.image_uris.normal + '" alt="' + cardData.name + '" class="card-image">';
             } else {
                 cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
             }
             cardCellHTML += '</div>';
             $('#cardGrid').append(cardCellHTML);
         }).fail(function() {
-            var cardCellHTML = '<div class="card-cell" onclick=\'openCardDetails(' + JSON.stringify(cardData) + ')\'>';
+            var cardCellHTML = '<div class="card-cell" onclick=\'openCardDetails(' + JSON.stringify(cardData).replace(/'/g, "\\'") + ')\'>';
             cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
             cardCellHTML += '</div>';
             $('#cardGrid').append(cardCellHTML);
