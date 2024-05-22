@@ -84,6 +84,11 @@
         #cardDetails {
             margin-top: 20px;
         }
+        .card-image {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -173,7 +178,22 @@
         });
 
         $('#cardDetails').html(cardDetailsHTML);
+
+        // Fetch card image from Scryfall
+        fetchCardImage(cardData.name);
     });
+
+    function fetchCardImage(cardName) {
+        var apiUrl = 'https://api.scryfall.com/cards/named?exact=' + encodeURIComponent(cardName);
+        $.getJSON(apiUrl, function(data) {
+            if (data && data.image_uris && data.image_uris.normal) {
+                var imgHTML = '<img src="' + data.image_uris.normal + '" alt="' + cardName + '" class="card-image">';
+                $('#cardDetails').append(imgHTML);
+            }
+        }).fail(function() {
+            console.error('Error fetching card image from Scryfall.');
+        });
+    }
 </script>
 
 </body>
