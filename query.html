@@ -72,23 +72,17 @@
             margin-top: 20px;
             text-align: left;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        td, th {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-        th {
-            background-color: #f2f2f2;
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-gap: 10px;
+            justify-items: center;
         }
         .card-cell {
-            text-align: center;
             cursor: pointer;
         }
         .card-image {
-            max-width: 100px;
+            max-width: 100%;
             height: auto;
         }
     </style>
@@ -99,16 +93,13 @@
     <input type="text" id="cardNameInput" placeholder="Enter card name...">
     <button id="searchButton" onclick="searchCard()">Search</button>
     <div id="cardResults">
-        <table id="cardTable">
-            <thead>
-                <tr>
-                    <th>Card</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Card images or names will be inserted here -->
-            </tbody>
-        </table>
+        <div class="card-grid" id="cardGrid"></div>
+    </div>
+    <div id="cardDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="cardDetails"></div>
+        </div>
     </div>
 </section>
 
@@ -121,7 +112,7 @@
         }
 
         // Clear previous results
-        $('#cardTable tbody').empty();
+        $('#cardGrid').empty();
 
         // Load sets from sets.json file
         $.getJSON('./data/sets.json', function(sets) {
@@ -150,48 +141,60 @@
                                     var propertyValue = $(this).attr('value');
                                     cardData.properties.push({name: propertyName, value: propertyValue});
                                 });
-                                // Fetch and display card image or name
+                                // Fetch and display card image
                                 fetchCardImage(cardData);
                             }
                         });
                     },
                     error: function(xhr, status, error) {
-                        ;
+                        console.error('Error loading set:', set, status, error);
                     }
+               
                 });
             });
         }).fail(function() {
             alert('Error loading sets data.');
         });
     }
-
     function fetchCardImage(cardData) {
         var apiUrl = 'https://api.scryfall.com/cards/named?exact=' + encodeURIComponent(cardData.name) + '&set=' + encodeURIComponent(cardData.setCode);
         $.getJSON(apiUrl, function(data) {
-            var rowHTML = '<tr class="card-cell" onclick=\'openCardDetails(' + JSON.stringify(cardData) + ')\'>';
+            var cardCellHTML = '<div class="card-cell" onclick=\'openCardDetails(' + JSON.stringify(cardData) + ')\'>';
             if (data && data.image_uris && data.image_uris.small) {
-                rowHTML += '<td><img src="' + data.image_uris.small + '" alt="' + cardData.name + '" class="card-image"></td>';
+                cardCellHTML += '<img src="' + data.image_uris.small + '" alt="' + cardData.name + '" class="card-image">';
             } else {
-                rowHTML += '<td>' + cardData.name + ' [' + cardData.setCode + ']</td>';
+                cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
             }
-            rowHTML += '</tr>';
-            $('#cardTable tbody').append(rowHTML);
+            cardCellHTML += '</div>';
+            $('#cardGrid').append(cardCellHTML);
         }).fail(function() {
-            var rowHTML = '<tr class="card-cell" onclick=\'openCardDetails(' + JSON.stringify(cardData) + ')\'>';
-            rowHTML += '<td>' + cardData.name + ' [' + cardData.setCode + ']</td>';
-            rowHTML += '</tr>';
-            $('#cardTable tbody').append(rowHTML);
+            var cardCellHTML = '<div class="card-cell" onclick=\'openCardDetails(' + JSON.stringify(cardData) + ')\'>';
+            cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
+            cardCellHTML += '</div>';
+            $('#cardGrid').append(cardCellHTML);
         });
     }
 
     function openCardDetails(cardData) {
-        var newWindow = window.open('', '_blank', 'width=600,height=400');
+        var modal = document.getElementById("cardDetailsModal");
+        var span = document.getElementsByClassName("close")[0];
         var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
         cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>'; // Display the full set name
         cardData.properties.forEach(function(property) {
             cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
         });
-        newWindow.document.write('<html><head><title>' + cardData.name + '</title></head><body>' + cardDetailsHTML + '</body></html>');
+        $('#cardDetails').html(cardDetailsHTML);
+        modal.style.display = "block";
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
     }
 </script>
 
