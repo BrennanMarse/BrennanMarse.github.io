@@ -72,22 +72,24 @@
             margin-top: 20px;
             text-align: left;
         }
-        #cardDropdown {
-            margin-top: 20px;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: calc(100% - 20px);
-            max-width: 300px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
-        #cardDetails {
-            margin-top: 20px;
+        td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .card-cell {
+            text-align: center;
+            cursor: pointer;
         }
         .card-image {
-            max-width: 100%;
+            max-width: 100px;
             height: auto;
-            margin-top: 20px;
         }
     </style>
 </head>
@@ -97,10 +99,16 @@
     <input type="text" id="cardNameInput" placeholder="Enter card name...">
     <button id="searchButton" onclick="searchCard()">Search</button>
     <div id="cardResults">
-        <select id="cardDropdown">
-            <option value="">Select a card</option>
-        </select>
-        <div id="cardDetails"></div>
+        <table id="cardTable">
+            <thead>
+                <tr>
+                    <th>Card</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Card images or names will be inserted here -->
+            </tbody>
+        </table>
     </div>
 </section>
 
@@ -113,8 +121,7 @@
         }
 
         // Clear previous results
-        $('#cardDropdown').empty().append('<option value="">Select a card</option>');
-        $('#cardDetails').empty();
+        $('#cardTable tbody').empty();
 
         // Load sets from sets.json file
         $.getJSON('./data/sets.json', function(sets) {
@@ -131,7 +138,6 @@
                             if (cardNameXML && cardNameXML.toLowerCase() === cardName.toLowerCase()) {
                                 var setCode = set; // Use the file name as the set code
                                 var cardId = card.attr('id');
-                                var optionText = cardNameXML + ' [' + setCode + ']';
                                 var cardData = {
                                     id: cardId,
                                     name: cardNameXML,
@@ -144,12 +150,8 @@
                                     var propertyValue = $(this).attr('value');
                                     cardData.properties.push({name: propertyName, value: propertyValue});
                                 });
-                                $('#cardDropdown').append(
-                                    $('<option>', {
-                                        value: JSON.stringify(cardData),
-                                        text: optionText
-                                    })
-                                );
+                                // Fetch and display card image or name
+                                fetchCardImage(cardData);
                             }
                         });
                     },
@@ -163,36 +165,33 @@
         });
     }
 
-    $(document).on('change', '#cardDropdown', function() {
-        var selectedCard = $(this).val();
-        if (!selectedCard) {
-            $('#cardDetails').empty();
-            return;
-        }
+    function fetchCardImage(cardData) {
+        var apiUrl = 'https://api.scryfall.com/cards/named?exact=' + encodeURIComponent(cardData.name) + '&set=' + encodeURIComponent(cardData.setCode);
+        $.getJSON(apiUrl, function(data) {
+            var rowHTML = '<tr class="card-cell" onclick=\'openCardDetails(' + JSON.stringify(cardData) + ')\'>';
+            if (data && data.image_uris && data.image_uris.small) {
+                rowHTML += '<td><img src="' + data.image_uris.small + '" alt="' + cardData.name + '" class="card-image"></td>';
+            } else {
+                rowHTML += '<td>' + cardData.name + ' [' + cardData.setCode + ']</td>';
+            }
+            rowHTML += '</tr>';
+            $('#cardTable tbody').append(rowHTML);
+        }).fail(function() {
+            var rowHTML = '<tr class="card-cell" onclick=\'openCardDetails(' + JSON.stringify(cardData) + ')\'>';
+            rowHTML += '<td>' + cardData.name + ' [' + cardData.setCode + ']</td>';
+            rowHTML += '</tr>';
+            $('#cardTable tbody').append(rowHTML);
+        });
+    }
 
-        var cardData = JSON.parse(selectedCard);
+    function openCardDetails(cardData) {
+        var newWindow = window.open('', '_blank', 'width=600,height=400');
         var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
         cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>'; // Display the full set name
         cardData.properties.forEach(function(property) {
             cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
         });
-
-        $('#cardDetails').html(cardDetailsHTML);
-
-        // Fetch card image from Scryfall
-        fetchCardImage(cardData.name, cardData.setCode);
-    });
-
-    function fetchCardImage(cardName, setCode) {
-        var apiUrl = 'https://api.scryfall.com/cards/named?exact=' + encodeURIComponent(cardName) + '&set=' + encodeURIComponent(setCode);
-        $.getJSON(apiUrl, function(data) {
-            if (data && data.image_uris && data.image_uris.normal) {
-                var imgHTML = '<img src="' + data.image_uris.normal + '" alt="' + cardName + '" class="card-image">';
-                $('#cardDetails').prepend(imgHTML);
-            }
-        }).fail(function() {
-            console.error('Error fetching card image from Scryfall.');
-        });
+        newWindow.document.write('<html><head><title>' + cardData.name + '</title></head><body>' + cardDetailsHTML + '</body></html>');
     }
 </script>
 
