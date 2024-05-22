@@ -233,16 +233,16 @@
 
     function fetchCardImage(cardData) {
         if (cardData.multiverseId) {
-            var apiUrl = `https://api.scryfall.com/cards/multiverse/${cardData.multiverseId}`;
-            $.getJSON(apiUrl, function(data) {
-                if (data && data.image_uris && data.image_uris.normal) {
-                    displayCardImage(data, cardData);
-                } else {
-                    displayCardFallback(cardData);
-                }
-            }).fail(function() {
+        var apiUrl = `https://api.scryfall.com/cards/multiverse/${cardData.multiverseId}`;
+        $.getJSON(apiUrl, function(data) {
+            if (data && data.image_uris && data.image_uris.normal) {
+                displayCardImage(data, cardData);
+            } else {
                 displayCardFallback(cardData);
-            });
+            }
+        }).fail(function() {
+            displayCardFallback(cardData);
+        });
         } else {
             displayCardFallback(cardData);
         }
