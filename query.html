@@ -139,7 +139,7 @@
             const selectedSetCode = document.getElementById('setDropdown').value;
             const cardName = document.getElementById('cardName').value.trim().toLowerCase();
 
-            fetch(`https://github.com/BrennanMarse/BrennanMarse.github.io/data/${selectedSetCode}.xml`)
+            fetch(`./data/${selectedSetCode}.xml`)
                 .then(response => response.text())
                 .then(data => {
                     const parser = new DOMParser();
@@ -172,7 +172,7 @@
         });
 
         function fetchSetsAndDisplay(cardName) {
-            fetch('https://github.com/BrennanMarse/BrennanMarse.github.io/data/sets.json')
+            fetch('./data/sets.json')
                 .then(response => response.json())
                 .then(setCodes => {
                     const setDropdown = document.getElementById('setDropdown');
