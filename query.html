@@ -119,6 +119,7 @@
                     url: './data/' + set + '.xml',
                     dataType: 'xml',
                     success: function(xml) {
+                        var setName = $(xml).find('set').attr('name'); // Get the full set name
                         $(xml).find('card').each(function() {
                             var card = $(this);
                             var cardNameXML = card.attr('name');
@@ -129,7 +130,8 @@
                                 var cardData = {
                                     id: cardId,
                                     name: cardNameXML,
-                                    set: setCode,
+                                    set: setName, // Use the full set name here
+                                    setCode: setCode, // Include the set code for later use
                                     properties: []
                                 };
                                 card.children('property').each(function() {
@@ -164,8 +166,8 @@
         }
 
         var cardData = JSON.parse(selectedCard);
-        var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.set + ']</h2>';
-        cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>';
+        var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
+        cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>'; // Display the full set name
         cardData.properties.forEach(function(property) {
             cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
         });
