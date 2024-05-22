@@ -81,6 +81,9 @@
             width: calc(100% - 20px);
             max-width: 300px;
         }
+        #cardDetails {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -92,6 +95,7 @@
         <select id="cardDropdown">
             <option value="">Select a card</option>
         </select>
+        <div id="cardDetails"></div>
     </div>
 </section>
 
@@ -105,6 +109,7 @@
 
         // Clear previous results
         $('#cardDropdown').empty().append('<option value="">Select a card</option>');
+        $('#cardDetails').empty();
 
         // Load sets from sets.json file
         $.getJSON('./data/sets.json', function(sets) {
@@ -123,21 +128,53 @@
                                 var setCode = setInfo.attr('code');
                                 var cardId = card.attr('id');
                                 var optionText = cardNameXML + ' [' + setCode + ']';
+                                var cardData = {
+                                    id: cardId,
+                                    name: cardNameXML,
+                                    set: setName,
+                                    setCode: setCode,
+                                    properties: []
+                                };
+                                card.children('property').each(function() {
+                                    var propertyName = $(this).attr('name');
+                                    var propertyValue = $(this).attr('value');
+                                    cardData.properties.push({name: propertyName, value: propertyValue});
+                                });
                                 $('#cardDropdown').append(
-                                    '<option value="' + cardId + '">' + optionText + '</option>'
+                                    $('<option>', {
+                                        value: JSON.stringify(cardData),
+                                        text: optionText
+                                    })
                                 );
                             }
                         });
                     },
                     error: function(xhr, status, error) {
-                        ;
+                        console.error('Error loading set:', set, status, error);
                     }
                 });
             });
         }).fail(function() {
-            ;
+            alert('Error loading sets data.');
         });
     }
+
+    $(document).on('change', '#cardDropdown', function() {
+        var selectedCard = $(this).val();
+        if (!selectedCard) {
+            $('#cardDetails').empty();
+            return;
+        }
+
+        var cardData = JSON.parse(selectedCard);
+        var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
+        cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>';
+        cardData.properties.forEach(function(property) {
+            cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
+        });
+
+        $('#cardDetails').html(cardDetailsHTML);
+    });
 </script>
 
 </body>
