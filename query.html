@@ -197,10 +197,9 @@
                         if (setsProcessed === sets.length) {
                             // Alphabetize the results and then display them
                             matchingCards.sort((a, b) => {
-                                if (a.name.localeCompare(b.name) !== 0) {
-                                    return a.name.localeCompare(b.name);
-                                }
-                                return a.setCode.localeCompare(b.setCode);
+                                if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
+                                if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
+                                return a.setCode.toLowerCase() < b.setCode.toLowerCase() ? -1 : 1;
                             });
                             matchingCards.forEach(fetchCardImage);
                         }
@@ -211,10 +210,9 @@
                         if (setsProcessed === sets.length) {
                             // Alphabetize the results and then display them
                             matchingCards.sort((a, b) => {
-                                if (a.name.localeCompare(b.name) !== 0) {
-                                    return a.name.localeCompare(b.name);
-                                }
-                                return a.setCode.localeCompare(b.setCode);
+                                if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
+                                if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
+                                return a.setCode.toLowerCase() < b.setCode.toLowerCase() ? -1 : 1;
                             });
                             matchingCards.forEach(fetchCardImage);
                         }
