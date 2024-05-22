@@ -174,7 +174,7 @@
                         $(xml).find('card').each(function() {
                             var card = $(this);
                             var cardNameXML = card.attr('name');
-                            var multiverseId = card.find('MultiverseId').text();
+                            var multiverseId = card.find('property[name="MultiverseId"]').attr('value');
                             if (cardNameXML && matchesSearchWords(cardNameXML.toLowerCase(), searchWords)) {
                                 var setCode = set; // Use the file name as the set code
                                 var cardId = card.attr('id');
