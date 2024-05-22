@@ -131,13 +131,13 @@
         }
     
         // Load sets from sets.json file
-        $.getJSON('sets.json', function(sets) {
+        $.getJSON('./data/sets.json', function(sets) {
             var resultsHTML = '';
     
             sets.forEach(function(set) {
                 $.ajax({
                     type: "GET",
-                    url: 'data/' + set + '.xml', // Update URL to include 'data/' folder
+                    url: './data/' + set + '.xml', // Update URL to include 'data/' folder
                     dataType: "xml",
                     success: function(xml) {
                         var cardFoundInSet = false; // Flag to track if the card is found in the current set
