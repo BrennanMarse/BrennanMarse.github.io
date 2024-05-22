@@ -180,15 +180,15 @@
         $('#cardDetails').html(cardDetailsHTML);
 
         // Fetch card image from Scryfall
-        fetchCardImage(cardData.name);
+        fetchCardImage(cardData.name, cardData.setCode);
     });
 
-    function fetchCardImage(cardName) {
-        var apiUrl = 'https://api.scryfall.com/cards/named?exact=' + encodeURIComponent(cardName);
+    function fetchCardImage(cardName, setCode) {
+        var apiUrl = 'https://api.scryfall.com/cards/named?exact=' + encodeURIComponent(cardName) + '&set=' + encodeURIComponent(setCode);
         $.getJSON(apiUrl, function(data) {
             if (data && data.image_uris && data.image_uris.normal) {
                 var imgHTML = '<img src="' + data.image_uris.normal + '" alt="' + cardName + '" class="card-image">';
-                $('#cardDetails').append(imgHTML);
+                $('#cardDetails').prepend(imgHTML);
             }
         }).fail(function() {
             console.error('Error fetching card image from Scryfall.');
