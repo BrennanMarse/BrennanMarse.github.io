@@ -233,24 +233,16 @@
 
     function fetchCardImage(cardData) {
         if (cardData.multiverseId) {
-        var apiUrl = `https://api.scryfall.com/cards/multiverse/${cardData.multiverseId}`;
-        $.getJSON(apiUrl, function(data) {
-            if (data && data.image_uris && data.image_uris.normal) {
-                displayCardImage(data, cardData);
-            } else {
-                displayCardFallback(cardData);
-            }
-        }).fail(function() {
-            displayCardFallback(cardData);
-        });
+            var imageUrl = `https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=${cardData.multiverseId}&type=card`;
+            displayCardImage(imageUrl, cardData);
         } else {
             displayCardFallback(cardData);
         }
     }
 
-    function displayCardImage(card, cardData) {
+    function displayCardImage(imageUrl, cardData) {
         var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
-        cardCellHTML += '<img src="' + card.image_uris.normal + '" alt="' + cardData.name + '" class="card-image">';
+        cardCellHTML += '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image">';
         cardCellHTML += '</div>';
         $('#cardGrid').append(cardCellHTML);
     }
