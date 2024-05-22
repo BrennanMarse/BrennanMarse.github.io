@@ -140,10 +140,12 @@
                     url: './data/' + set + '.xml', // Update URL to include 'data/' folder
                     dataType: "xml",
                     success: function(xml) {
+                        var cardFoundInSet = false; // Flag to track if the card is found in the current set
                         $(xml).find('card').each(function() {
                             var card = $(this);
                             var cardNameXML = card.attr('name');
                             if (cardNameXML.toLowerCase() === cardName.toLowerCase()) {
+                                cardFoundInSet = true; // Set flag to true if card is found
                                 var setInfo = card.parents('set');
                                 var setName = setInfo.attr('name');
                                 var cardId = card.attr('id');
@@ -160,8 +162,18 @@
                                 });
                             }
                         });
+                        if (!cardFoundInSet) {
+                            // Append message if card is not found in the set
+                            resultsHTML += '<div>';
+                            resultsHTML += '<h2>' + set + '</h2>';
+                            resultsHTML += '<p>Card not found in this set.</p>';
+                            resultsHTML += '</div>';
+                        }
                         $('#cardResults').html(resultsHTML);
                     },
+                    error: function() {
+                        alert('Error loading XML file: ' + set);
+                    }
                 });
             });
         });
