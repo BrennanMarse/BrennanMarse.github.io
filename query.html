@@ -157,6 +157,9 @@
         // Clear previous results
         $('#cardGrid').empty();
 
+        // Collect all matching cards
+        var matchingCards = [];
+
         // Load sets from sets.json file
         $.getJSON('./data/sets.json', function(sets) {
             sets.forEach(function(set) {
@@ -184,10 +187,15 @@
                                     var propertyValue = $(this).attr('value');
                                     cardData.properties.push({name: propertyName, value: propertyValue});
                                 });
-                                // Fetch and display card image or name
-                                fetchCardImage(cardData);
+                                matchingCards.push(cardData);
                             }
                         });
+
+                        // Alphabetize the results and then display them
+                        if (sets.indexOf(set) === sets.length - 1) {
+                            matchingCards.sort((a, b) => a.name.localeCompare(b.name));
+                            matchingCards.forEach(fetchCardImage);
+                        }
                     },
                     error: function(xhr, status, error) {
                         console.error('Error loading set:', set, status, error);
@@ -205,16 +213,24 @@
     }
 
     function fetchCardImage(cardData) {
-        var apiUrl = 'https://api.scryfall.com/cards/named?exact=' + encodeURIComponent(cardData.name) + '&set=' + encodeURIComponent(cardData.setCode);
+        var apiUrl = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(cardData.name)}+set:${encodeURIComponent(cardData.setCode)}`;
         $.getJSON(apiUrl, function(data) {
-            var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
-            if (data && data.image_uris && data.image_uris.normal) {
-                cardCellHTML += '<img src="' + data.image_uris.normal + '" alt="' + cardData.name + '" class="card-image">';
+            if (data && data.data && data.data.length > 0) {
+                var card = data.data[0];
+                var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
+                if (card.image_uris && card.image_uris.normal) {
+                    cardCellHTML += '<img src="' + card.image_uris.normal + '" alt="' + cardData.name + '" class="card-image">';
+                } else {
+                    cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
+                }
+                cardCellHTML += '</div>';
+                $('#cardGrid').append(cardCellHTML);
             } else {
+                var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
                 cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
+                cardCellHTML += '</div>';
+                $('#cardGrid').append(cardCellHTML);
             }
-            cardCellHTML += '</div>';
-            $('#cardGrid').append(cardCellHTML);
         }).fail(function() {
             var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
             cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
