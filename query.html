@@ -119,12 +119,12 @@
                     url: './data/' + set + '.xml',
                     dataType: 'xml',
                     success: function(xml) {
+                        var setCode = $(xml).find('set').attr('code'); // Getting the set code
+                        var setName = $(xml).find('set').attr('name'); // Getting the set name
                         $(xml).find('card').each(function() {
                             var card = $(this);
                             var cardNameXML = card.attr('name');
                             if (cardNameXML && cardNameXML.toLowerCase() === cardName.toLowerCase()) {
-                                var setName = $(xml).find('set').attr('name');
-                                var setCode = $(xml).find('set').attr('code');
                                 var cardId = card.attr('id');
                                 var optionText = cardNameXML + ' [' + setCode + ']';
                                 var cardData = {
