@@ -151,8 +151,8 @@
             return;
         }
 
-        // Create a regular expression to match whole words
-        var cardNameRegex = new RegExp('\\b' + cardName + '\\b', 'i');
+        // Split the search term into words
+        var searchWords = cardName.split(/\s+/);
 
         // Clear previous results
         $('#cardGrid').empty();
@@ -169,7 +169,7 @@
                         $(xml).find('card').each(function() {
                             var card = $(this);
                             var cardNameXML = card.attr('name');
-                            if (cardNameXML && cardNameRegex.test(cardNameXML.toLowerCase())) {
+                            if (cardNameXML && matchesSearchWords(cardNameXML.toLowerCase(), searchWords)) {
                                 var setCode = set; // Use the file name as the set code
                                 var cardId = card.attr('id');
                                 var cardData = {
@@ -197,6 +197,11 @@
         }).fail(function() {
             alert('Error loading sets data.');
         });
+    }
+
+    function matchesSearchWords(cardName, searchWords) {
+        var cardWords = cardName.split(/\s+/);
+        return searchWords.some(word => cardWords.includes(word));
     }
 
     function fetchCardImage(cardData) {
