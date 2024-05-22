@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TheScoutRunner's Website</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <meta content="TheScoutRunner's Website" property="og:title" />
     <meta content="TheScoutRunner's personal website with things to see." property="og:description" />
     <meta content="thescoutrunner.com" property="og:url" />
@@ -115,86 +116,59 @@
     </style>
 </head>
 <body>
-    <form id="searchForm">
-        <label for="cardName">Search for a card:</label>
-        <input type="text" id="cardName" name="cardName">
-        <input type="submit" value="Search">
-    </form>
-    <div id="setSelection" style="display:none;">
-        <label for="setDropdown">Select a set:</label>
-        <select id="setDropdown"></select>
-    </div>
-    <div id="cardList"></div>
+    
+<input type="text" id="cardNameInput" placeholder="Enter card name...">
+<button onclick="searchCard()">Search</button>
 
-    <script>
-        document.getElementById('searchForm').addEventListener('submit', function(event) {
-            event.preventDefault();
+<div id="cardResults"></div>
 
-            const cardName = document.getElementById('cardName').value.trim().toLowerCase();
-
-            fetchSetsAndDisplay(cardName);
-        });
-
-        document.getElementById('setSelection').addEventListener('change', function() {
-            const selectedSetId = document.getElementById('setDropdown').value;
-            const cardName = document.getElementById('cardName').value.trim().toLowerCase();
-
-            fetch(`./data/${selectedSetId}.xml`)
-                .then(response => response.text())
-                .then(data => {
-                    const parser = new DOMParser();
-                    const xml = parser.parseFromString(data, 'text/xml');
-                    
-                    const cardList = document.getElementById('cardList');
-                    cardList.innerHTML = '';
-                    xml.querySelectorAll('card').forEach(card => {
-                        const name = card.getAttribute('name').trim().toLowerCase();
-                        if (name.includes(cardName)) {
-                            const properties = card.querySelectorAll('property');
-                            const cardInfo = {};
-                            properties.forEach(property => {
-                                const propertyName = property.getAttribute('name');
-                                const propertyValue = property.getAttribute('value');
-                                cardInfo[propertyName] = propertyValue;
-                            });
-                            
-                            const cardElement = document.createElement('div');
-                            cardElement.classList.add('card');
-                            cardElement.innerHTML = `
-                                <h2>${cardInfo.name}</h2>
-                                <p>Type: ${cardInfo.Type}</p>
-                                <p>Mana Cost: ${cardInfo.Cost}</p>
-                                <p>Rules: ${cardInfo.Rules}</p>
-                                <p>Rarity: ${cardInfo.Rarity}</p>
-                                <!-- Add more properties as needed -->
-                            `;
-                            cardList.appendChild(cardElement);
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching XML data:', error);
-                });
-        });
-
-        function fetchSetsAndDisplay(cardName) {
-            fetch('./data/sets.json')
-                .then(response => response.json())
-                .then(sets => {
-                    const setDropdown = document.getElementById('setDropdown');
-                    setDropdown.innerHTML = '';
-                    sets.forEach(set => {
-                        const option = document.createElement('option');
-                        option.textContent = set.name;
-                        option.value = set.id;
-                        setDropdown.appendChild(option);
-                    });
-                    document.getElementById('setSelection').style.display = 'block';
-                })
-                .catch(error => {
-                    console.error('Error fetching sets:', error);
-                });
+<script>
+    function searchCard() {
+        var cardName = document.getElementById('cardNameInput').value;
+        if (cardName.trim() === '') {
+            alert('Please enter a card name.');
+            return;
         }
+    
+        // Load sets from sets.json file
+        $.getJSON('./data/sets.json', function(sets) {
+            var resultsHTML = '';
+    
+            sets.forEach(function(set) {
+                $.ajax({
+                    type: "GET",
+                    url: set + '.xml', // Assuming your XML files are named after set codes
+                    dataType: "xml",
+                    success: function(xml) {
+                        $(xml).find('card').each(function() {
+                            var card = $(this);
+                            var cardNameXML = card.attr('name');
+                            if (cardNameXML.toLowerCase() === cardName.toLowerCase()) {
+                                var setInfo = card.parents('set');
+                                var setName = setInfo.attr('name');
+                                var cardId = card.attr('id');
+                                resultsHTML += '<div>';
+                                resultsHTML += '<h2>' + setName + '</h2>';
+                                resultsHTML += '<select id="' + cardId + '"></select>';
+                                resultsHTML += '</div>';
+    
+                                // Populate dropdown with card info for the set
+                                card.children('property').each(function() {
+                                    var propertyName = $(this).attr('name');
+                                    var propertyValue = $(this).attr('value');
+                                    resultsHTML += '<p>' + propertyName + ': ' + propertyValue + '</p>';
+                                });
+                            }
+                        });
+                        $('#cardResults').html(resultsHTML);
+                    },
+                    error: function() {
+                        alert('Error loading XML file: ' + set);
+                    }
+                });
+            });
+        });
+    }
     </script>
 </body>
 </html>
