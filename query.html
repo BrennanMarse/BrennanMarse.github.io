@@ -145,11 +145,14 @@
 
 <script>
     function searchCard() {
-        var cardName = $('#cardNameInput').val().trim();
+        var cardName = $('#cardNameInput').val().trim().toLowerCase();
         if (!cardName) {
             alert('Please enter a card name.');
             return;
         }
+
+        // Create a regular expression to match the card name
+        var cardNameRegex = new RegExp(cardName, 'i');
 
         // Clear previous results
         $('#cardGrid').empty();
@@ -166,7 +169,7 @@
                         $(xml).find('card').each(function() {
                             var card = $(this);
                             var cardNameXML = card.attr('name');
-                            if (cardNameXML && cardNameXML.toLowerCase() === cardName.toLowerCase()) {
+                            if (cardNameXML && cardNameRegex.test(cardNameXML.toLowerCase())) {
                                 var setCode = set; // Use the file name as the set code
                                 var cardId = card.attr('id');
                                 var cardData = {
