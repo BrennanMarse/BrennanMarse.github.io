@@ -12,169 +12,133 @@
     <meta content="#0968f8" data-react-helmet="true" name="theme-color" />
     <link rel="icon" type="image/x-icon" href="./images/me.ico">
     <style>
-        #catContainer {
-            justify-content: center;
-            align-items: center;
-            height: fit-content;
-            text-align: center;
-        }
-        iframe {
-            width: 100%;
-            border: none;
-        }
-        #catImage {
-            width: 30%;
-            height: 30%;
-            display: none;
-            
-        }
         body {
             font-family: Arial, sans-serif;
             margin: auto;
             padding: 0;
             background-color: #f0f0f0;
         }
-        header {
+        header, footer {
             background-color: #333;
             color: #fff;
-            padding: 20px;
             text-align: center;
+            padding: 20px;
         }
         nav {
             background-color: #444;
-            padding: 10px 0;
             text-align: center;
+            padding: 10px 0;
         }
         nav a {
-            text-decoration: none;
             color: #fff;
+            text-decoration: none;
             padding: 0 10px;
-            transition: color 0.3s ease;
+            transition: color 0.3s;
         }
         nav a:hover {
             color: #ffcc00;
         }
         section {
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-            overflow: hidden;
             background-color: #fff;
-            margin: 20px;
+            padding: 20px;
+            margin: 20px auto;
+            text-align: center;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 800px;
         }
-        footer {
-            background-color: #333;
-            color: #fff;
-            padding: 20px;
-            text-align: center;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
-        #options {
-        padding: 10px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        background-color: #f9f9f9;
-        color: #333;
-        width: 100%;
-        max-width: 300px; /* Set a maximum width */
-        }
-        /* Style the dropdown arrow */
-        #options::after {
-            content: '\25BC';
-            position: absolute;
-            top: 50%;
-            right: 10px;
-            transform: translateY(-50%);
-            pointer-events: none;
-        }
-        .center {
-            text-align: center;
-        }
-        .collapse-label {
-            cursor: pointer;
-            color: blue;
-            text-decoration: underline;
-        }
-        .card {
+        #cardNameInput {
+            padding: 10px;
+            font-size: 16px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            padding: 10px;
-            margin: 10px;
-            width: 200px;
-            display: inline-block;
-            vertical-align: top;
+            width: calc(100% - 20px);
+            max-width: 300px;
         }
-        .card h2 {
-            margin-top: 0;
+        #searchButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+            cursor: pointer;
+        }
+        #searchButton:hover {
+            background-color: #555;
+        }
+        #cardResults {
+            margin-top: 20px;
+            text-align: left;
+        }
+        #cardDropdown {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: calc(100% - 20px);
+            max-width: 300px;
         }
     </style>
 </head>
 <body>
-    
-<input type="text" id="cardNameInput" placeholder="Enter card name...">
-<button onclick="searchCard()">Search</button>
 
-<div id="cardResults"></div>
+<section>
+    <input type="text" id="cardNameInput" placeholder="Enter card name...">
+    <button id="searchButton" onclick="searchCard()">Search</button>
+    <div id="cardResults">
+        <select id="cardDropdown">
+            <option value="">Select a card</option>
+        </select>
+    </div>
+</section>
 
 <script>
     function searchCard() {
-        var cardName = document.getElementById('cardNameInput').value;
-        if (cardName.trim() === '') {
+        var cardName = $('#cardNameInput').val().trim();
+        if (!cardName) {
             alert('Please enter a card name.');
             return;
         }
-    
+
+        // Clear previous results
+        $('#cardDropdown').empty().append('<option value="">Select a card</option>');
+
         // Load sets from sets.json file
         $.getJSON('./data/sets.json', function(sets) {
-            var resultsHTML = '';
-    
             sets.forEach(function(set) {
                 $.ajax({
-                    type: "GET",
-                    url: './data/' + set + '.xml', // Update URL to include 'data/' folder
-                    dataType: "xml",
+                    type: 'GET',
+                    url: './data/' + set + '.xml',
+                    dataType: 'xml',
                     success: function(xml) {
-                        var cardFoundInSet = false; // Flag to track if the card is found in the current set
                         $(xml).find('card').each(function() {
                             var card = $(this);
                             var cardNameXML = card.attr('name');
-                            if (cardNameXML.toLowerCase() === cardName.toLowerCase()) {
-                                cardFoundInSet = true; // Set flag to true if card is found
-                                var setInfo = card.parents('set');
+                            if (cardNameXML && cardNameXML.toLowerCase() === cardName.toLowerCase()) {
+                                var setInfo = card.closest('set');
                                 var setName = setInfo.attr('name');
+                                var setCode = setInfo.attr('code');
                                 var cardId = card.attr('id');
-                                resultsHTML += '<div>';
-                                resultsHTML += '<h2>' + setName + '</h2>';
-                                resultsHTML += '<select id="' + cardId + '"></select>';
-                                resultsHTML += '</div>';
-    
-                                // Populate dropdown with card info for the set
-                                card.children('property').each(function() {
-                                    var propertyName = $(this).attr('name');
-                                    var propertyValue = $(this).attr('value');
-                                    resultsHTML += '<p>' + propertyName + ': ' + propertyValue + '</p>';
-                                });
+                                var optionText = cardNameXML + ' [' + setCode + ']';
+                                $('#cardDropdown').append(
+                                    '<option value="' + cardId + '">' + optionText + '</option>'
+                                );
                             }
                         });
-                        
-                        // Only update the result HTML if the card was found in the set
-                        if (cardFoundInSet) {
-                            $('#cardResults').html(resultsHTML);
-                        }
                     },
                     error: function(xhr, status, error) {
-                    console.error('Error loading XML file:', set, 'Status:', status, 'Error:', error);
+                        ;
                     }
                 });
             });
+        }).fail(function() {
+            ;
         });
     }
-    </script>
+</script>
+
 </body>
 </html>
