@@ -136,10 +136,10 @@
         });
 
         document.getElementById('setSelection').addEventListener('change', function() {
-            const selectedSetCode = document.getElementById('setDropdown').value;
+            const selectedSetId = document.getElementById('setDropdown').value;
             const cardName = document.getElementById('cardName').value.trim().toLowerCase();
 
-            fetch(`./data/${selectedSetCode}.xml`)
+            fetch(`./data/${selectedSetId}.xml`)
                 .then(response => response.text())
                 .then(data => {
                     const parser = new DOMParser();
@@ -148,19 +148,25 @@
                     const cardList = document.getElementById('cardList');
                     cardList.innerHTML = '';
                     xml.querySelectorAll('card').forEach(card => {
-                        const name = card.querySelector('name').textContent.trim().toLowerCase();
+                        const name = card.getAttribute('name').trim().toLowerCase();
                         if (name.includes(cardName)) {
-                            const type = card.querySelector('type').textContent;
-                            const manaCost = card.querySelector('mana_cost').textContent;
-                            const ability = card.querySelector('ability').textContent;
+                            const properties = card.querySelectorAll('property');
+                            const cardInfo = {};
+                            properties.forEach(property => {
+                                const propertyName = property.getAttribute('name');
+                                const propertyValue = property.getAttribute('value');
+                                cardInfo[propertyName] = propertyValue;
+                            });
                             
                             const cardElement = document.createElement('div');
                             cardElement.classList.add('card');
                             cardElement.innerHTML = `
-                                <h2>${name}</h2>
-                                <p>Type: ${type}</p>
-                                <p>Mana Cost: ${manaCost}</p>
-                                <p>Ability: ${ability}</p>
+                                <h2>${cardInfo.name}</h2>
+                                <p>Type: ${cardInfo.Type}</p>
+                                <p>Mana Cost: ${cardInfo.Cost}</p>
+                                <p>Rules: ${cardInfo.Rules}</p>
+                                <p>Rarity: ${cardInfo.Rarity}</p>
+                                <!-- Add more properties as needed -->
                             `;
                             cardList.appendChild(cardElement);
                         }
@@ -174,13 +180,13 @@
         function fetchSetsAndDisplay(cardName) {
             fetch('./data/sets.json')
                 .then(response => response.json())
-                .then(setCodes => {
+                .then(sets => {
                     const setDropdown = document.getElementById('setDropdown');
                     setDropdown.innerHTML = '';
-                    setCodes.forEach(setCode => {
+                    sets.forEach(set => {
                         const option = document.createElement('option');
-                        option.textContent = setCode;
-                        option.value = setCode;
+                        option.textContent = set.name;
+                        option.value = set.id;
                         setDropdown.appendChild(option);
                     });
                     document.getElementById('setSelection').style.display = 'block';
