@@ -168,8 +168,8 @@
                             $('#cardResults').html(resultsHTML);
                         }
                     },
-                    error: function() {
-                        alert('Error loading XML file: ' + set);
+                    error: function(xhr, status, error) {
+                    console.error('Error loading XML file:', set, 'Status:', status, 'Error:', error);
                     }
                 });
             });
