@@ -151,8 +151,8 @@
             return;
         }
 
-        // Create a regular expression to match the card name
-        var cardNameRegex = new RegExp(cardName, 'i');
+        // Create a regular expression to match whole words
+        var cardNameRegex = new RegExp('\\b' + cardName + '\\b', 'i');
 
         // Clear previous results
         $('#cardGrid').empty();
