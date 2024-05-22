@@ -85,30 +85,33 @@
             max-width: 100%;
             height: auto;
         }
+
+        /* Modal container */
         .modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
             left: 0;
             top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
         }
 
-        /* Modal Content */
+        /* Modal content box */
         .modal-content {
             background-color: #fefefe;
-            margin: 15% auto;
+            margin: 15% auto; /* 15% from the top and centered */
             padding: 20px;
             border: 1px solid #888;
-            border-radius: 8px;
+            width: 80%; /* Could be more or less, depending on screen size */
             max-width: 600px;
-            position: relative;
+            border-radius: 10px;
         }
 
-        /* Close Button */
+        /* Close button */
         .close {
             color: #aaa;
             float: right;
@@ -178,7 +181,7 @@
                                     var propertyValue = $(this).attr('value');
                                     cardData.properties.push({name: propertyName, value: propertyValue});
                                 });
-                                // Fetch and display card image
+                                // Fetch and display card image or name
                                 fetchCardImage(cardData);
                             }
                         });
@@ -186,13 +189,13 @@
                     error: function(xhr, status, error) {
                         console.error('Error loading set:', set, status, error);
                     }
-               
                 });
             });
         }).fail(function() {
             alert('Error loading sets data.');
         });
     }
+
     function fetchCardImage(cardData) {
         var apiUrl = 'https://api.scryfall.com/cards/named?exact=' + encodeURIComponent(cardData.name) + '&set=' + encodeURIComponent(cardData.setCode);
         $.getJSON(apiUrl, function(data) {
@@ -220,13 +223,15 @@
         cardData.properties.forEach(function(property) {
             cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
         });
-        $('#cardDetails').html(cardDetailsHTML);
+        document.getElementById('cardDetails').innerHTML = cardDetailsHTML;
         modal.style.display = "block";
 
+        // When the user clicks on <span> (x), close the modal
         span.onclick = function() {
             modal.style.display = "none";
         }
 
+        // When the user clicks anywhere outside of the modal, close it
         window.onclick = function(event) {
             if (event.target == modal) {
                 modal.style.display = "none";
