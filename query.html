@@ -137,7 +137,7 @@
             sets.forEach(function(set) {
                 $.ajax({
                     type: "GET",
-                    url: 'data/' + set + '.xml', // Assuming your XML files are named after set codes
+                    url: 'data/' + set + '.xml', // Update URL to include 'data/' folder
                     dataType: "xml",
                     success: function(xml) {
                         $(xml).find('card').each(function() {
