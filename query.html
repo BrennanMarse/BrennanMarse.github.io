@@ -119,19 +119,17 @@
                     url: './data/' + set + '.xml',
                     dataType: 'xml',
                     success: function(xml) {
-                        var setCode = $(xml).find('set').attr('code'); // Getting the set code
-                        var setName = $(xml).find('set').attr('name'); // Getting the set name
                         $(xml).find('card').each(function() {
                             var card = $(this);
                             var cardNameXML = card.attr('name');
                             if (cardNameXML && cardNameXML.toLowerCase() === cardName.toLowerCase()) {
+                                var setCode = set; // Use the file name as the set code
                                 var cardId = card.attr('id');
                                 var optionText = cardNameXML + ' [' + setCode + ']';
                                 var cardData = {
                                     id: cardId,
                                     name: cardNameXML,
-                                    set: setName,
-                                    setCode: setCode,
+                                    set: setCode,
                                     properties: []
                                 };
                                 card.children('property').each(function() {
@@ -166,7 +164,7 @@
         }
 
         var cardData = JSON.parse(selectedCard);
-        var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
+        var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.set + ']</h2>';
         cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>';
         cardData.properties.forEach(function(property) {
             cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
