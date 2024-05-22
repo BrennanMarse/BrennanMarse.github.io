@@ -232,19 +232,30 @@
     }
 
     function fetchCardImage(cardData) {
+        console.log("Fetching image for card:", cardData.name, "MultiverseId:", cardData.multiverseId);
         if (cardData.multiverseId) {
             var imageUrl = `https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=${cardData.multiverseId}&type=card`;
+            console.log("Image URL:", imageUrl);
             displayCardImage(imageUrl, cardData);
         } else {
+            console.log("No MultiverseId found for card:", cardData.name);
             displayCardFallback(cardData);
         }
     }
 
     function displayCardImage(imageUrl, cardData) {
-        var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
-        cardCellHTML += '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image">';
-        cardCellHTML += '</div>';
-        $('#cardGrid').append(cardCellHTML);
+        var img = new Image();
+        img.src = imageUrl;
+        img.onload = function() {
+            var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
+            cardCellHTML += '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image">';
+            cardCellHTML += '</div>';
+            $('#cardGrid').append(cardCellHTML);
+        };
+        img.onerror = function() {
+            console.error("Failed to load image for card:", cardData.name, "from URL:", imageUrl);
+            displayCardFallback(cardData);
+        };
     }
 
     function displayCardFallback(cardData) {
