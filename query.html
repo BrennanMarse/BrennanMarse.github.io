@@ -193,7 +193,12 @@
 
                         // Alphabetize the results and then display them
                         if (sets.indexOf(set) === sets.length - 1) {
-                            matchingCards.sort((a, b) => a.name.localeCompare(b.name));
+                            matchingCards.sort((a, b) => {
+                                if (a.name.localeCompare(b.name) !== 0) {
+                                    return a.name.localeCompare(b.name);
+                                }
+                                return a.setCode.localeCompare(b.setCode);
+                            });
                             matchingCards.forEach(fetchCardImage);
                         }
                     },
@@ -216,27 +221,40 @@
         var apiUrl = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(cardData.name)}+set:${encodeURIComponent(cardData.setCode)}`;
         $.getJSON(apiUrl, function(data) {
             if (data && data.data && data.data.length > 0) {
-                var card = data.data[0];
-                var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
-                if (card.image_uris && card.image_uris.normal) {
-                    cardCellHTML += '<img src="' + card.image_uris.normal + '" alt="' + cardData.name + '" class="card-image">';
-                } else {
-                    cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
-                }
-                cardCellHTML += '</div>';
-                $('#cardGrid').append(cardCellHTML);
+                displayCardImage(data.data[0], cardData);
             } else {
-                var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
-                cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
-                cardCellHTML += '</div>';
-                $('#cardGrid').append(cardCellHTML);
+                fetchFallbackCardImage(cardData);
             }
         }).fail(function() {
-            var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
-            cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
-            cardCellHTML += '</div>';
-            $('#cardGrid').append(cardCellHTML);
+            fetchFallbackCardImage(cardData);
         });
+    }
+
+    function fetchFallbackCardImage(cardData) {
+        var apiUrl = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardData.name)}`;
+        $.getJSON(apiUrl, function(data) {
+            if (data && data.image_uris && data.image_uris.normal) {
+                displayCardImage(data, cardData);
+            } else {
+                displayCardFallback(cardData);
+            }
+        }).fail(function() {
+            displayCardFallback(cardData);
+        });
+    }
+
+    function displayCardImage(card, cardData) {
+        var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
+        cardCellHTML += '<img src="' + card.image_uris.normal + '" alt="' + cardData.name + '" class="card-image">';
+        cardCellHTML += '</div>';
+        $('#cardGrid').append(cardCellHTML);
+    }
+
+    function displayCardFallback(cardData) {
+        var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
+        cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
+        cardCellHTML += '</div>';
+        $('#cardGrid').append(cardCellHTML);
     }
 
     function openCardDetails(element) {
