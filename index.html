@@ -4,213 +4,279 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TheScoutRunner's Website</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <meta content="TheScoutRunner's Website" property="og:title" />
     <meta content="TheScoutRunner's personal website with things to see." property="og:description" />
     <meta content="thescoutrunner.com" property="og:url" />
     <meta content="/images/me.jpg" property="og:image" />
     <meta content="#0968f8" data-react-helmet="true" name="theme-color" />
-    <link rel="icon" type="image/x-icon" href="/images/me.ico">
+    <link rel="icon" type="image/x-icon" href="./images/me.ico">
     <style>
-        #catContainer {
-            justify-content: center;
-            align-items: center;
-            height: fit-content;
-            text-align: center;
-        }
-        iframe {
-            width: 100%;
-            border: none;
-        }
-        #catImage {
-            width: 30%;
-            height: 30%;
-            display: none;
-            
-        }
         body {
             font-family: Arial, sans-serif;
             margin: auto;
             padding: 0;
             background-color: #f0f0f0;
         }
-        header {
+        header, footer {
             background-color: #333;
             color: #fff;
-            padding: 20px;
             text-align: center;
+            padding: 20px;
         }
         nav {
             background-color: #444;
-            padding: 10px 0;
             text-align: center;
+            padding: 10px 0;
         }
         nav a {
-            text-decoration: none;
             color: #fff;
+            text-decoration: none;
             padding: 0 10px;
-            transition: color 0.3s ease;
+            transition: color 0.3s;
         }
         nav a:hover {
             color: #ffcc00;
         }
         section {
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-            overflow: hidden;
             background-color: #fff;
-            margin: 20px;
+            padding: 20px;
+            margin: 20px auto;
+            text-align: center;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 800px;
         }
-        footer {
+        #cardNameInput {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: calc(100% - 20px);
+            max-width: 300px;
+        }
+        #searchButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
             background-color: #333;
             color: #fff;
-            padding: 20px;
-            text-align: center;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
-        #options {
-        padding: 10px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        background-color: #f9f9f9;
-        color: #333;
-        width: 100%;
-        max-width: 300px; /* Set a maximum width */
-        }
-        /* Style the dropdown arrow */
-        #options::after {
-            content: '\25BC';
-            position: absolute;
-            top: 50%;
-            right: 10px;
-            transform: translateY(-50%);
-            pointer-events: none;
-        }
-        #toggleButton {
-        padding: 10px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        background-color: #f9f9f9;
-        color: #333;
-        width: 100%;
-        max-width: 300px; 
-        }
-        .center {
-            text-align: center;
-        }
-        .collapse-label {
             cursor: pointer;
-            color: blue;
-            text-decoration: underline;
+        }
+        #searchButton:hover {
+            background-color: #555;
+        }
+        #cardResults {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-gap: 10px;
+            justify-items: center;
+        }
+        .card-cell {
+            cursor: pointer;
+        }
+        .card-image {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Modal container */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+        /* Modal content box */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            max-width: 600px;
+            border-radius: 10px;
+        }
+
+        /* Close button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Welcome to my website :)</h1>
-    </header>
-    <nav>
-        <a href="#">Home</a>
-        <a href="about.html">About</a>
-    </nav>
-    <section id="container">
-        <select name="options" id="options" onchange="changeIframeSrc()">
-            <option value="" id="del">Select a deck to view</option>
-            <option value="https://www.moxfield.com/embed/WHLdmGiItkuOonb104tGXg?hideTotal=true&includeMana=true">Cat/Dog Deck</option>
-            <option value="https://www.moxfield.com/embed/hcEKA2lPh0eaIf2PFT5ghw?hideTotal=true&includeMana=true">Dinosaur</option>
-            <option value="https://www.moxfield.com/embed/OQusa5dqrkmkr6BOfiKZrg?hideTotal=true&includeMana=true">Mono Green</option>
-            <option value="https://www.moxfield.com/embed/NUyZYN__MU6ycUIbqNVD9g?hideTotal=true&includeMana=true">Aristrocrats</option>
-            <option value="https://www.moxfield.com/embed/Q4ye_0CsFEi8dn3FuyRqrA?hideTotal=true&includeMana=true">Lightpaws</option>
-            <option value="https://www.moxfield.com/embed/li9hmpk5AkCUtRJhROUbsA?hideTotal=true&includeMana=true">Godo</option>
-            <option value="https://www.moxfield.com/embed/TbmV5kwD_UC6Q86PjfeZqQ?hideTotal=true&includeMana=true">Merfolks</option>
-            <option value="https://www.moxfield.com/embed/JUQt4ovuKUOHspkHuHZweQ?hideTotal=true&includeMana=true">Jetmir</option>
-        </select>
-        <iframe 
-            id="myIframe"
-            frameBorder="0"
-            onload="moxfieldOnLoad(event)">
-        </iframe>
-    </section>
-    
-    <div id="catContainer">
-        <button id="toggleButton">Click me :)</button>
-        <br><br>
-        <img id="catImage" src="https://soggy.cat/img/soggycat.webp" alt="Soggy Cat">
+
+<section>
+    <input type="text" id="cardNameInput" placeholder="Enter card name...">
+    <button id="searchButton" onclick="searchCard()">Search</button>
+    <div id="cardResults">
+        <div class="card-grid" id="cardGrid"></div>
     </div>
-    
-    <script>
-        const toggleButton = document.getElementById('toggleButton');
-        const catImage = document.getElementById('catImage');
-        catImage.style.display = 'none'
-        
-        toggleButton.addEventListener('click', function() {
-            if (catImage.style.display === 'none') {
-                toggleButton.innerText = "bingus :)"
-                catImage.style.display = 'ruby';
-            } else {
-                toggleButton.innerText = "sealed away for eternity"
-                toggleButton.style.color = "gray"
-                toggleButton.disabled = true;
-                catImage.style.display = 'none';
-            }
+    <div id="cardDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="cardDetails"></div>
+        </div>
+    </div>
+</section>
+
+<script>
+    function searchCard() {
+        var cardName = $('#cardNameInput').val().trim().toLowerCase();
+        if (!cardName) {
+            alert('Please enter a card name.');
+            return;
+        }
+
+        // Split the search term into words
+        var searchWords = cardName.split(/\s+/);
+
+        // Clear previous results
+        $('#cardGrid').empty();
+
+        // Collect all matching cards
+        var matchingCards = [];
+
+        // Load sets from sets.json file
+        $.getJSON('./data/sets.json', function(sets) {
+            var setsProcessed = 0;
+
+            sets.forEach(function(set) {
+                $.ajax({
+                    type: 'GET',
+                    url: './data/' + set + '.xml',
+                    dataType: 'xml',
+                    success: function(xml) {
+                        var setName = $(xml).find('set').attr('name'); // Get the full set name
+                        $(xml).find('card').each(function() {
+                            var card = $(this);
+                            var cardNameXML = card.attr('name');
+                            if (cardNameXML && matchesSearchWords(cardNameXML.toLowerCase(), searchWords)) {
+                                var setCode = set; // Use the file name as the set code
+                                var cardId = card.attr('id');
+                                var cardData = {
+                                    id: cardId,
+                                    name: cardNameXML,
+                                    set: setName, // Use the full set name here
+                                    setCode: setCode, // Include the set code for later use
+                                    properties: []
+                                };
+                                card.children('property').each(function() {
+                                    var propertyName = $(this).attr('name');
+                                    var propertyValue = $(this).attr('value');
+                                    cardData.properties.push({name: propertyName, value: propertyValue});
+                                });
+                                matchingCards.push(cardData);
+                            }
+                        });
+
+                        setsProcessed++;
+                        if (setsProcessed === sets.length) {
+                            // Alphabetize the results and then display them
+                            matchingCards.sort((a, b) => {
+                                if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
+                                if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
+                                return a.setCode.toLowerCase() < b.setCode.toLowerCase() ? -1 : 1;
+                            });
+                            matchingCards.forEach(displayCardImage);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading set:', set, status, error);
+                        setsProcessed++;
+                        if (setsProcessed === sets.length) {
+                            // Alphabetize the results and then display them
+                            matchingCards.sort((a, b) => {
+                                if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
+                                if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
+                                return a.setCode.toLowerCase() < b.setCode.toLowerCase() ? -1 : 1;
+                            });
+                            matchingCards.forEach(displayCardImage);
+                        }
+                    }
+                });
+            });
+        }).fail(function() {
+            alert('Error loading sets data.');
         });
-    </script>
+    }
 
-    <script>
-    function changeIframeSrc() {
-        var dropdown = document.getElementById("options");
-        var selectedOption = dropdown.options[dropdown.selectedIndex].value;
-        var iframe = document.getElementById("myIframe");
+    function matchesSearchWords(cardName, searchWords) {
+        var cardWords = cardName.split(/\s+/);
+        return searchWords.some(word => cardWords.includes(word.toLowerCase()));
+    }
 
-        if (selectedOption) {
-            iframe.src = selectedOption;
-            var placeholderOption = document.getElementById("del");
-            if (placeholderOption) {
-                dropdown.removeChild(placeholderOption);
+    function displayCardImage(cardData) {
+        var imageUrl = `./images/cards/${cardData.setCode}/${cardData.name}.full.jpg`;
+        var img = new Image();
+        img.src = imageUrl;
+        img.onload = function() {
+            var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
+            cardCellHTML += '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image">';
+            cardCellHTML += '</div>';
+            $('#cardGrid').append(cardCellHTML);
+        };
+        img.onerror = function() {
+            console.error("Failed to load image for card:", cardData.name, "from URL:", imageUrl);
+            displayCardFallback(cardData);
+        };
+    }
+
+    function displayCardFallback(cardData) {
+        var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
+        cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
+        cardCellHTML += '</div>';
+        $('#cardGrid').append(cardCellHTML);
+    }
+
+    function openCardDetails(element) {
+        var cardData = JSON.parse(element.getAttribute('data-card').replace(/&apos;/g, "'"));
+        var modal = document.getElementById("cardDetailsModal");
+        var span = document.getElementsByClassName("close")[0];
+        var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
+        cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>'; // Display the full set name
+        cardData.properties.forEach(function(property) {
+            cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
+        });
+        document.getElementById('cardDetails').innerHTML = cardDetailsHTML;
+        modal.style.display = "block";
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
             }
-        } else {
-            iframe.src = "";
         }
     }
+</script>
 
-    function adjustContainerHeight() {
-        var container = document.getElementById("container");
-        var iframe = document.getElementById("myIframe");
-        if (iframe.contentWindow.document.body.scrollHeight > 0) {
-            container.style.height = iframe.contentWindow.document.body.scrollHeight + "px";
-        } else {
-            // Set default height if content is not loaded yet
-            container.style.height = "300px";
-        }
-    }
-
-        // Moxfield auto-sizing functions
-    function moxfieldOnMessage(e) {
-        const data = e.data;
-        if (typeof data === "object" && data.type === "moxfield") {
-            const iframe = document.getElementById(data.id);
-            if (iframe) {
-            iframe.style.height = data.data + "px";
-            adjustContainerHeight(); // Adjust container height after iframe height is set
-            }
-        }
-    }
-
-    function moxfieldOnLoad(e) {
-        if (e.target && e.target.contentWindow) {
-            e.target.contentWindow.postMessage({ type: "moxfield", data: e.target.id }, "*");
-        }
-    }
-
-        // Listen for messages for auto-sizing
-    window.addEventListener("message", moxfieldOnMessage);
-    </script>
 </body>
 </html>
