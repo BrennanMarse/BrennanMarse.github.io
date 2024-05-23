@@ -110,6 +110,8 @@
             width: 80%; /* Could be more or less, depending on screen size */
             max-width: 600px;
             border-radius: 10px;
+            display: flex;
+            flex-direction: row; /* Display content side by side */
         }
 
         /* Close button */
@@ -126,6 +128,15 @@
             text-decoration: none;
             cursor: pointer;
         }
+
+        .modal-content img {
+            max-width: 50%;
+            margin-right: 20px;
+        }
+
+        .modal-content .details {
+            flex-grow: 1;
+        }
     </style>
 </head>
 <body>
@@ -139,7 +150,8 @@
     <div id="cardDetailsModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <div id="cardDetails"></div>
+            <img id="modalCardImage" src="" alt="Card Image">
+            <div id="cardDetails" class="details"></div>
         </div>
     </div>
 </section>
@@ -262,11 +274,6 @@
 
         getImageUrl(cardData, selectedIndex, function(imageUrl) {
             var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
-            cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>';
-            cardData.properties.forEach(function(property) {
-                cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
-            });
-
             $('#cardDetails-' + cardKey).html(cardDetailsHTML);
         });
     }
@@ -300,13 +307,17 @@
         var cardSets = $('#cardDetails-' + cardKey).data('cardSets');
         var cardData = cardSets[selectedIndex];
 
-        var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
-        cardData.properties.forEach(function(property) {
-            cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
-        });
+        getImageUrl(cardData, selectedIndex, function(imageUrl) {
+            $('#modalCardImage').attr('src', imageUrl);
 
-        $('#cardDetails').html(cardDetailsHTML);
-        $('#cardDetailsModal').css('display', 'block');
+            var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
+            cardData.properties.forEach(function(property) {
+                cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
+            });
+
+            $('#cardDetails').html(cardDetailsHTML);
+            $('#cardDetailsModal').css('display', 'block');
+        });
     }
 
     // Close the modal when the close button or the background is clicked
