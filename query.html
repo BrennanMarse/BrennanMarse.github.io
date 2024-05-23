@@ -215,7 +215,9 @@
                             matchingCards.sort((a, b) => {
                                 if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
                                 if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
-                                return a.setCode.toLowerCase() < b.setCode.toLowerCase() ? -1 : 1;
+                                if (a.setCode.toLowerCase() < b.setCode.toLowerCase()) return -1;
+                                if (a.setCode.toLowerCase() > b.setCode.toLowerCase()) return 1;
+                                return 0;
                             });
                             matchingCards.forEach(displayCardImage);
                         }
@@ -228,7 +230,9 @@
                             matchingCards.sort((a, b) => {
                                 if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
                                 if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
-                                return a.setCode.toLowerCase() < b.setCode.toLowerCase() ? -1 : 1;
+                                if (a.setCode.toLowerCase() < b.setCode.toLowerCase()) return -1;
+                                if (a.setCode.toLowerCase() > b.setCode.toLowerCase()) return 1;
+                                return 0;
                             });
                             matchingCards.forEach(displayCardImage);
                         }
@@ -249,7 +253,7 @@
         var startVersion = lastFoundVersion[cardKey] || '';
 
         // Normalize card name for image lookup
-        var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, ''); 
+        var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '%20'); 
 
         function loadImageVersion(version) {
             var imageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}${version}.full.jpg`;
