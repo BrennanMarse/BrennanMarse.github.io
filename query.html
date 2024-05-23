@@ -167,6 +167,9 @@
         // Collect all matching cards
         var matchingCards = [];
 
+        // Track unique cards to prevent duplicates
+        var uniqueCards = new Set();
+
         // Load sets from sets.json file
         $.getJSON('./data/sets.json', function(sets) {
             var setsProcessed = 0;
@@ -184,6 +187,12 @@
                             if (cardNameXML && matchesSearchWords(cardNameXML.toLowerCase(), searchWords)) {
                                 var setCode = set; // Use the file name as the set code
                                 var cardId = card.attr('id');
+                                var cardKey = cardNameXML + '-' + setCode;
+
+                                // Skip duplicates
+                                if (uniqueCards.has(cardKey)) return;
+                                uniqueCards.add(cardKey);
+
                                 var cardData = {
                                     id: cardId,
                                     name: cardNameXML,
@@ -232,7 +241,7 @@
     }
 
     function matchesSearchWords(cardName, searchWords) {
-        return searchWords.every(word => cardName.includes(word.toLowerCase()));
+        return searchWords.every(word => new RegExp('\\b' + word + '\\b', 'i').test(cardName));
     }
 
     function displayCardImage(cardData) {
