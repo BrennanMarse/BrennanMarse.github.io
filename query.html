@@ -300,7 +300,7 @@
         if (setCount === 1) {
             callback(baseImageUrl + '.full.jpg');
         } else {
-            var imgVersion = Math.floor(version / setCount) + 1;
+            var imgVersion = (version % setCount) + 1; // Ensure version starts from 1
             callback(baseImageUrl + imgVersion + '.full.jpg');
         }
     }
