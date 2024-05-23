@@ -145,7 +145,6 @@
 </section>
 
 <script>
-    var lastFoundVersion = {};
     var githubBaseUrl = 'https://raw.githubusercontent.com/BrennanMarse/images/main/images/cards/'; // Update with your GitHub raw URL
 
     function searchCard() {
@@ -161,14 +160,8 @@
         // Clear previous results
         $('#cardGrid').empty();
 
-        // Reset the version tracker
-        lastFoundVersion = {};
-
         // Collect all matching cards
-        var matchingCards = [];
-
-        // Track unique cards to prevent duplicates
-        var uniqueCards = new Set();
+        var matchingCards = {};
 
         // Load sets from sets.json file
         $.getJSON('./data/sets.json', function(sets) {
@@ -187,11 +180,10 @@
                             if (cardNameXML && matchesSearchWords(cardNameXML.toLowerCase(), searchWords)) {
                                 var setCode = set; // Use the file name as the set code
                                 var cardId = card.attr('id');
-                                var cardKey = cardNameXML + '-' + setCode;
 
-                                // Skip duplicates
-                                if (uniqueCards.has(cardKey)) return;
-                                uniqueCards.add(cardKey);
+                                if (!matchingCards[cardNameXML]) {
+                                    matchingCards[cardNameXML] = [];
+                                }
 
                                 var cardData = {
                                     id: cardId,
@@ -200,41 +192,33 @@
                                     setCode: setCode, // Include the set code for later use
                                     properties: []
                                 };
+
                                 card.children('property').each(function() {
                                     var propertyName = $(this).attr('name');
                                     var propertyValue = $(this).attr('value');
-                                    cardData.properties.push({name: propertyName, value: propertyValue});
+                                    cardData.properties.push({ name: propertyName, value: propertyValue });
                                 });
-                                matchingCards.push(cardData);
+
+                                matchingCards[cardNameXML].push(cardData);
                             }
                         });
 
                         setsProcessed++;
                         if (setsProcessed === sets.length) {
-                            // Alphabetize the results and then display them
-                            matchingCards.sort((a, b) => {
-                                if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
-                                if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
-                                if (a.setCode.toLowerCase() < b.setCode.toLowerCase()) return -1;
-                                if (a.setCode.toLowerCase() > b.setCode.toLowerCase()) return 1;
-                                return 0;
-                            });
-                            matchingCards.forEach(displayCardImage);
+                            // Display the results
+                            for (var cardName in matchingCards) {
+                                displayCard(cardName, matchingCards[cardName]);
+                            }
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error('Error loading set:', set, status, error);
                         setsProcessed++;
                         if (setsProcessed === sets.length) {
-                            // Alphabetize the results and then display them
-                            matchingCards.sort((a, b) => {
-                                if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
-                                if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
-                                if (a.setCode.toLowerCase() < b.setCode.toLowerCase()) return -1;
-                                if (a.setCode.toLowerCase() > b.setCode.toLowerCase()) return 1;
-                                return 0;
-                            });
-                            matchingCards.forEach(displayCardImage);
+                            // Display the results
+                            for (var cardName in matchingCards) {
+                                displayCard(cardName, matchingCards[cardName]);
+                            }
                         }
                     }
                 });
@@ -248,74 +232,44 @@
         return searchWords.every(word => new RegExp('\\b' + word + '\\b', 'i').test(cardName));
     }
 
-    function displayCardImage(cardData) {
-        var cardKey = cardData.name + '-' + cardData.setCode;
-        var startVersion = lastFoundVersion[cardKey] || '';
+    function displayCard(cardName, cardSets) {
+        cardSets.sort((a, b) => a.setCode.localeCompare(b.setCode)); // Sort by set code
 
-        // Normalize card name for image lookup
-        var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '%20'); 
-
-        function loadImageVersion(version) {
-            var imageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}${version}.full.jpg`;
-            var img = new Image();
-            img.src = imageUrl;
-            img.onload = function() {
-                var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
-                cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
-                cardCellHTML += '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image">';
-                cardCellHTML += '</div>';
-                $('#cardGrid').append(cardCellHTML);
-                lastFoundVersion[cardKey] = version; // Update the last found version
-            };
-            img.onerror = function() {
-                if (version === '') {
-                    // Try version 1 if no version is found
-                    loadImageVersion(1);
-                } else if (version < 10) {
-                    // Try the next version if current one fails
-                    loadImageVersion(version + 1);
-                } else {
-                    // Fallback if no versions are found
-                    displayCardFallback(cardData);
-                }
-            };
-        }
-
-        // Start checking from the last found version or without version number
-        loadImageVersion(startVersion);
-    }
-
-    function displayCardFallback(cardData) {
-        var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
-        cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
-        cardCellHTML += '<p>(Image not available)</p>';
+        var cardCellHTML = '<div class="card-cell">';
+        cardCellHTML += '<p>' + cardName + '</p>';
+        cardCellHTML += '<select onchange="updateCardDetails(this, \'' + cardName + '\')">';
+        cardSets.forEach(function(cardData, index) {
+            cardCellHTML += '<option value="' + index + '">' + cardData.set + ' [' + cardData.setCode + ']</option>';
+        });
+        cardCellHTML += '</select>';
+        cardCellHTML += '<div id="cardDetails-' + cardName.replace(/\s+/g, '') + '"></div>';
         cardCellHTML += '</div>';
+
         $('#cardGrid').append(cardCellHTML);
+
+        // Display the first set's details by default
+        updateCardDetails($('select').last()[0], cardName);
     }
 
-    function openCardDetails(element) {
-        var cardData = JSON.parse(element.getAttribute('data-card').replace(/&apos;/g, "'"));
-        var modal = document.getElementById("cardDetailsModal");
-        var span = document.getElementsByClassName("close")[0];
-        var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
-        cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>'; // Display the full set name
+    function updateCardDetails(selectElement, cardName) {
+        var cardSets = $(selectElement).find('option').map(function() {
+            return $(this).data('cardData');
+        }).get();
+        var selectedIndex = selectElement.value;
+        var cardData = cardSets[selectedIndex];
+
+        var cardDetailsHTML = '<img src="' + getImageUrl(cardData) + '" alt="' + cardData.name + '" class="card-image">';
+        cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>';
         cardData.properties.forEach(function(property) {
             cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
         });
-        document.getElementById('cardDetails').innerHTML = cardDetailsHTML;
-        modal.style.display = "block";
 
-        // When the user clicks on <span> (x), close the modal
-        span.onclick = function() {
-            modal.style.display = "none";
-        }
+        $('#cardDetails-' + cardName.replace(/\s+/g, '')).html(cardDetailsHTML);
+    }
 
-        // When the user clicks anywhere outside of the modal, close it
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
+    function getImageUrl(cardData) {
+        var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '%20');
+        return `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}.full.jpg`;
     }
 </script>
 
