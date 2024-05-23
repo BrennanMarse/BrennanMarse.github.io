@@ -80,10 +80,12 @@
         }
         .card-cell {
             cursor: pointer;
+            text-align: center;
         }
         .card-image {
-            max-width: 100%;
-            height: auto;
+            width: 200px;
+            height: 280px; /* Ensuring consistent size */
+            object-fit: cover;
         }
 
         /* Modal container */
@@ -174,7 +176,6 @@
                         $(xml).find('card').each(function() {
                             var card = $(this);
                             var cardNameXML = card.attr('name');
-                            var multiverseId = card.find('property[name="MultiverseId"]').attr('value');
                             if (cardNameXML && matchesSearchWords(cardNameXML.toLowerCase(), searchWords)) {
                                 var setCode = set; // Use the file name as the set code
                                 var cardId = card.attr('id');
@@ -183,7 +184,6 @@
                                     name: cardNameXML,
                                     set: setName, // Use the full set name here
                                     setCode: setCode, // Include the set code for later use
-                                    multiverseId: multiverseId, // Include the multiverseId for fetching images
                                     properties: []
                                 };
                                 card.children('property').each(function() {
@@ -203,7 +203,7 @@
                                 if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
                                 return a.setCode.toLowerCase() < b.setCode.toLowerCase() ? -1 : 1;
                             });
-                            matchingCards.forEach(fetchCardImage);
+                            matchingCards.forEach(displayCardImage);
                         }
                     },
                     error: function(xhr, status, error) {
@@ -216,7 +216,7 @@
                                 if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
                                 return a.setCode.toLowerCase() < b.setCode.toLowerCase() ? -1 : 1;
                             });
-                            matchingCards.forEach(fetchCardImage);
+                            matchingCards.forEach(displayCardImage);
                         }
                     }
                 });
@@ -231,34 +231,38 @@
         return searchWords.some(word => cardWords.includes(word.toLowerCase()));
     }
 
-    function fetchCardImage(cardData) {
-        console.log("Fetching image for card:", cardData.name, "MultiverseId:", cardData.multiverseId);
-        if (cardData.multiverseId) {
-            var apiUrl = `https://api.scryfall.com/cards/multiverse/${cardData.multiverseId}`;
-            $.getJSON(apiUrl, function(data) {
-                if (data && data.image_uris && data.image_uris.normal) {
-                    displayCardImage(data.image_uris.normal, cardData);
+    function displayCardImage(cardData) {
+        // Function to check and load image versions
+        function loadImageVersion(version) {
+            var imageUrl = `./images/cards/${cardData.setCode}/${cardData.name}${version}.full.jpg`;
+            var img = new Image();
+            img.src = imageUrl;
+            img.onload = function() {
+                var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
+                cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
+                cardCellHTML += '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image">';
+                cardCellHTML += '</div>';
+                $('#cardGrid').append(cardCellHTML);
+            };
+            img.onerror = function() {
+                if (version < 10) {
+                    // Try the next version if current one fails
+                    loadImageVersion(version + 1);
                 } else {
+                    // Fallback if no versions are found
                     displayCardFallback(cardData);
                 }
-            }).fail(function() {
-                displayCardFallback(cardData);
-            });
-        } else {
-            displayCardFallback(cardData);
+            };
         }
-    }
 
-    function displayCardImage(imageUrl, cardData) {
-        var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
-        cardCellHTML += '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image">';
-        cardCellHTML += '</div>';
-        $('#cardGrid').append(cardCellHTML);
+        // Start checking from version 1
+        loadImageVersion(1);
     }
 
     function displayCardFallback(cardData) {
         var cardCellHTML = '<div class="card-cell" data-card=\'' + JSON.stringify(cardData).replace(/'/g, "&apos;") + '\' onclick="openCardDetails(this)">';
         cardCellHTML += '<p>' + cardData.name + ' [' + cardData.setCode + ']</p>';
+        cardCellHTML += '<p>(Image not available)</p>';
         cardCellHTML += '</div>';
         $('#cardGrid').append(cardCellHTML);
     }
