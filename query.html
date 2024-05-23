@@ -131,8 +131,8 @@
         }
 
         .modal-content img {
-            width: 300px;
-            height: auto; /* Ensure consistent image size */
+            max-width: 300px; /* Adjust width as needed */
+            height: auto; /* Maintain aspect ratio */
             border: 2px solid black; /* Add black border */
             margin-right: 20px;
         }
@@ -298,7 +298,7 @@
         if (setCount === 1) {
             callback(baseImageUrl + '.full.jpg');
         } else {
-            var imgVersion = version % setCount + 1;
+            var imgVersion = Math.floor(version / setCount) + 1;
             callback(baseImageUrl + imgVersion + '.full.jpg');
         }
     }
