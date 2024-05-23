@@ -249,7 +249,7 @@
         var startVersion = lastFoundVersion[cardKey] || '';
 
         // Normalize card name for image lookup
-        var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '');
+        var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, ''); 
 
         function loadImageVersion(version) {
             var imageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}${version}.full.jpg`;
