@@ -84,7 +84,8 @@
         }
         .card-image {
             width: 200px;
-            height: auto; /* Ensure images maintain aspect ratio */
+            height: 280px; /* Ensure consistent image size */
+            object-fit: cover; /* Maintain aspect ratio and fill the space */
         }
 
         /* Modal container */
@@ -130,8 +131,9 @@
         }
 
         .modal-content img {
-            max-width: 50%;
-            height: auto; /* Ensure images maintain aspect ratio */
+            width: 200px;
+            height: 280px;
+            object-fit: cover; /* Maintain aspect ratio and fill the space */
             margin-right: 20px;
         }
 
@@ -248,6 +250,15 @@
     function displayCard(cardName, cardSets) {
         cardSets.sort((a, b) => a.setCode.localeCompare(b.setCode)); // Sort by set code
 
+        // Count the number of printings for each set
+        var setCounts = {};
+        cardSets.forEach(function(cardData) {
+            if (!setCounts[cardData.setCode]) {
+                setCounts[cardData.setCode] = 0;
+            }
+            setCounts[cardData.setCode]++;
+        });
+
         var cardKey = cardName.replace(/\s+/g, '');
         var cardCellHTML = '<div class="card-cell">';
         cardCellHTML += '<p>' + cardName + '</p>';
@@ -262,7 +273,7 @@
         $('#cardGrid').append(cardCellHTML);
 
         // Store card sets data for later use
-        $('#cardDetails-' + cardKey).data('cardSets', cardSets);
+        $('#cardDetails-' + cardKey).data('cardSets', cardSets).data('setCounts', setCounts);
 
         // Display the first set's details by default
         updateCardDetails($('select').last()[0], cardKey);
@@ -270,51 +281,33 @@
 
     function updateCardDetails(selectElement, cardKey) {
         var cardSets = $('#cardDetails-' + cardKey).data('cardSets');
+        var setCounts = $('#cardDetails-' + cardKey).data('setCounts');
         var selectedIndex = selectElement.value;
         var cardData = cardSets[selectedIndex];
 
-        getImageUrl(cardData, function(imageUrl) {
+        getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
             var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
             $('#cardDetails-' + cardKey).html(cardDetailsHTML);
         });
     }
 
-    function getImageUrl(cardData, callback) {
+    function getImageUrl(cardData, setCount, version, callback) {
         var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '%20');
         var baseImageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}`;
-        var imageUrl = baseImageUrl + '.full.jpg';
 
-        var img = new Image();
-        img.onload = function() {
-            callback(imageUrl);
-        };
-        img.onerror = function() {
-            checkVersionedImage(1);
-        };
-        img.src = imageUrl;
-
-        function checkVersionedImage(version) {
-            var versionedImageUrl = `${baseImageUrl}${version}.full.jpg`;
-            var imgVersioned = new Image();
-            imgVersioned.onload = function() {
-                callback(versionedImageUrl);
-            };
-            imgVersioned.onerror = function() {
-                if (version < 10) { // Avoid infinite loops
-                    checkVersionedImage(version + 1);
-                } else {
-                    callback(imageUrl); // Fallback if no image is found
-                }
-            };
-            imgVersioned.src = versionedImageUrl;
+        if (setCount === 1) {
+            callback(baseImageUrl + '.full.jpg');
+        } else {
+            callback(baseImageUrl + (version + 1) + '.full.jpg');
         }
     }
 
     function openCardModal(cardKey, selectedIndex) {
         var cardSets = $('#cardDetails-' + cardKey).data('cardSets');
+        var setCounts = $('#cardDetails-' + cardKey).data('setCounts');
         var cardData = cardSets[selectedIndex];
 
-        getImageUrl(cardData, function(imageUrl) {
+        getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
             $('#modalCardImage').attr('src', imageUrl);
 
             var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
