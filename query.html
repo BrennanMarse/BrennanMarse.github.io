@@ -260,18 +260,40 @@
         var selectedIndex = selectElement.value;
         var cardData = cardSets[selectedIndex];
 
-        var cardDetailsHTML = '<img src="' + getImageUrl(cardData, selectedIndex) + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
-        cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>';
-        cardData.properties.forEach(function(property) {
-            cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
-        });
+        getImageUrl(cardData, selectedIndex, function(imageUrl) {
+            var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
+            cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>';
+            cardData.properties.forEach(function(property) {
+                cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
+            });
 
-        $('#cardDetails-' + cardKey).html(cardDetailsHTML);
+            $('#cardDetails-' + cardKey).html(cardDetailsHTML);
+        });
     }
 
-    function getImageUrl(cardData, version) {
+    function getImageUrl(cardData, version, callback) {
         var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '%20');
-        return `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}${version}.full.jpg`;
+        var imageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}.full.jpg`;
+
+        // Check if the image exists without a version number
+        var img = new Image();
+        img.onload = function() {
+            callback(imageUrl);
+        };
+        img.onerror = function() {
+            // If not found, check with version numbers
+            var versionedImageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}${version + 1}.full.jpg`;
+            var imgVersioned = new Image();
+            imgVersioned.onload = function() {
+                callback(versionedImageUrl);
+            };
+            imgVersioned.onerror = function() {
+                // Fallback if no image is found
+                callback(imageUrl); // or a default image URL
+            };
+            imgVersioned.src = versionedImageUrl;
+        };
+        img.src = imageUrl;
     }
 
     function openCardModal(cardKey, selectedIndex) {
