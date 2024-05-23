@@ -236,7 +236,6 @@
         cardSets.sort((a, b) => a.setCode.localeCompare(b.setCode)); // Sort by set code
 
         var cardKey = cardName.replace(/\s+/g, '');
-
         var cardCellHTML = '<div class="card-cell">';
         cardCellHTML += '<p>' + cardName + '</p>';
         cardCellHTML += '<select onchange="updateCardDetails(this, \'' + cardKey + '\')">';
@@ -261,7 +260,7 @@
         var selectedIndex = selectElement.value;
         var cardData = cardSets[selectedIndex];
 
-        var cardDetailsHTML = '<img src="' + getImageUrl(cardData) + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
+        var cardDetailsHTML = '<img src="' + getImageUrl(cardData, selectedIndex) + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
         cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>';
         cardData.properties.forEach(function(property) {
             cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
@@ -270,9 +269,9 @@
         $('#cardDetails-' + cardKey).html(cardDetailsHTML);
     }
 
-    function getImageUrl(cardData) {
+    function getImageUrl(cardData, version) {
         var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '%20');
-        return `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}.full.jpg`;
+        return `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}${version}.full.jpg`;
     }
 
     function openCardModal(cardKey, selectedIndex) {
@@ -280,8 +279,6 @@
         var cardData = cardSets[selectedIndex];
 
         var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
-        cardDetailsHTML += '<img src="' + getImageUrl(cardData) + '" alt="' + cardData.name + '" class="card-image">';
-        cardDetailsHTML += '<p><strong>Set:</strong> ' + cardData.set + '</p>';
         cardData.properties.forEach(function(property) {
             cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
         });
