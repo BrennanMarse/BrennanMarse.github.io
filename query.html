@@ -108,7 +108,7 @@
             padding: 20px;
             border: 1px solid #888;
             width: 80%; /* Could be more or less, depending on screen size */
-            max-width: 600px;
+            max-width: 800px;
             border-radius: 10px;
             display: flex;
             flex-direction: row; /* Display content side by side */
@@ -131,6 +131,7 @@
 
         .modal-content img {
             max-width: 50%;
+            height: auto; /* Ensure images maintain aspect ratio */
             margin-right: 20px;
         }
 
@@ -272,42 +273,48 @@
         var selectedIndex = selectElement.value;
         var cardData = cardSets[selectedIndex];
 
-        getImageUrl(cardData, selectedIndex, function(imageUrl) {
+        getImageUrl(cardData, function(imageUrl) {
             var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
             $('#cardDetails-' + cardKey).html(cardDetailsHTML);
         });
     }
 
-    function getImageUrl(cardData, version, callback) {
+    function getImageUrl(cardData, callback) {
         var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '%20');
-        var imageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}.full.jpg`;
+        var baseImageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}`;
+        var imageUrl = baseImageUrl + '.full.jpg';
 
-        // Check if the image exists without a version number
         var img = new Image();
         img.onload = function() {
             callback(imageUrl);
         };
         img.onerror = function() {
-            // If not found, check with version numbers
-            var versionedImageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}${version + 1}.full.jpg`;
+            checkVersionedImage(1);
+        };
+        img.src = imageUrl;
+
+        function checkVersionedImage(version) {
+            var versionedImageUrl = `${baseImageUrl}${version}.full.jpg`;
             var imgVersioned = new Image();
             imgVersioned.onload = function() {
                 callback(versionedImageUrl);
             };
             imgVersioned.onerror = function() {
-                // Fallback if no image is found
-                callback(imageUrl); // or a default image URL
+                if (version < 10) { // Avoid infinite loops
+                    checkVersionedImage(version + 1);
+                } else {
+                    callback(imageUrl); // Fallback if no image is found
+                }
             };
             imgVersioned.src = versionedImageUrl;
-        };
-        img.src = imageUrl;
+        }
     }
 
     function openCardModal(cardKey, selectedIndex) {
         var cardSets = $('#cardDetails-' + cardKey).data('cardSets');
         var cardData = cardSets[selectedIndex];
 
-        getImageUrl(cardData, selectedIndex, function(imageUrl) {
+        getImageUrl(cardData, function(imageUrl) {
             $('#modalCardImage').attr('src', imageUrl);
 
             var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
