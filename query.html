@@ -146,6 +146,7 @@
 
 <script>
     var lastFoundVersion = {};
+    var githubBaseUrl = 'https://raw.githubusercontent.com/BrennanMarse/images/main/images/cards/'; // Update with your GitHub raw URL
 
     function searchCard() {
         var cardName = $('#cardNameInput').val().trim().toLowerCase();
@@ -242,7 +243,7 @@
         var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '');
 
         function loadImageVersion(version) {
-            var imageUrl = `./images/cards/${cardData.setCode}/${normalizedCardName}${version}.full.jpg`;
+            var imageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}${version}.full.jpg`;
             var img = new Image();
             img.src = imageUrl;
             img.onload = function() {
