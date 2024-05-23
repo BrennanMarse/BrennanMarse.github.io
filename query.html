@@ -146,6 +146,8 @@
 </section>
 
 <script>
+    var lastFoundVersion = {};
+
     function searchCard() {
         var cardName = $('#cardNameInput').val().trim().toLowerCase();
         if (!cardName) {
@@ -158,6 +160,9 @@
 
         // Clear previous results
         $('#cardGrid').empty();
+
+        // Reset the version tracker
+        lastFoundVersion = {};
 
         // Collect all matching cards
         var matchingCards = [];
@@ -232,7 +237,9 @@
     }
 
     function displayCardImage(cardData) {
-        // Function to check and load image versions
+        var cardKey = cardData.name + '-' + cardData.setCode;
+        var startVersion = lastFoundVersion[cardKey] || '';
+
         function loadImageVersion(version) {
             var imageUrl = `./images/cards/${cardData.setCode}/${cardData.name}${version}.full.jpg`;
             var img = new Image();
@@ -243,9 +250,13 @@
                 cardCellHTML += '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image">';
                 cardCellHTML += '</div>';
                 $('#cardGrid').append(cardCellHTML);
+                lastFoundVersion[cardKey] = version; // Update the last found version
             };
             img.onerror = function() {
-                if (version < 10) {
+                if (version === '') {
+                    // Try version 1 if no version is found
+                    loadImageVersion(1);
+                } else if (version < 10) {
                     // Try the next version if current one fails
                     loadImageVersion(version + 1);
                 } else {
@@ -255,8 +266,8 @@
             };
         }
 
-        // Start checking from version 1
-        loadImageVersion(1);
+        // Start checking from the last found version or without version number
+        loadImageVersion(startVersion);
     }
 
     function displayCardFallback(cardData) {
