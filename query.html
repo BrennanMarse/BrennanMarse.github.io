@@ -84,8 +84,7 @@
         }
         .card-image {
             width: 200px;
-            height: 280px; /* Ensuring consistent size */
-            object-fit: cover;
+            height: auto; /* Ensure images maintain aspect ratio */
         }
 
         /* Modal container */
@@ -232,16 +231,18 @@
     }
 
     function matchesSearchWords(cardName, searchWords) {
-        var cardWords = cardName.split(/\s+/);
-        return searchWords.some(word => cardWords.includes(word.toLowerCase()));
+        return searchWords.every(word => cardName.includes(word.toLowerCase()));
     }
 
     function displayCardImage(cardData) {
         var cardKey = cardData.name + '-' + cardData.setCode;
         var startVersion = lastFoundVersion[cardKey] || '';
 
+        // Normalize card name for image lookup
+        var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '');
+
         function loadImageVersion(version) {
-            var imageUrl = `./images/cards/${cardData.setCode}/${cardData.name}${version}.full.jpg`;
+            var imageUrl = `./images/cards/${cardData.setCode}/${normalizedCardName}${version}.full.jpg`;
             var img = new Image();
             img.src = imageUrl;
             img.onload = function() {
