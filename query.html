@@ -235,26 +235,29 @@
     function displayCard(cardName, cardSets) {
         cardSets.sort((a, b) => a.setCode.localeCompare(b.setCode)); // Sort by set code
 
+        var cardKey = cardName.replace(/\s+/g, '');
+
         var cardCellHTML = '<div class="card-cell">';
         cardCellHTML += '<p>' + cardName + '</p>';
-        cardCellHTML += '<select onchange="updateCardDetails(this, \'' + cardName + '\')">';
+        cardCellHTML += '<select onchange="updateCardDetails(this, \'' + cardKey + '\')">';
         cardSets.forEach(function(cardData, index) {
             cardCellHTML += '<option value="' + index + '">' + cardData.set + ' [' + cardData.setCode + ']</option>';
         });
         cardCellHTML += '</select>';
-        cardCellHTML += '<div id="cardDetails-' + cardName.replace(/\s+/g, '') + '"></div>';
+        cardCellHTML += '<div id="cardDetails-' + cardKey + '"></div>';
         cardCellHTML += '</div>';
 
         $('#cardGrid').append(cardCellHTML);
 
+        // Store card sets data for later use
+        $('#cardDetails-' + cardKey).data('cardSets', cardSets);
+
         // Display the first set's details by default
-        updateCardDetails($('select').last()[0], cardName);
+        updateCardDetails($('select').last()[0], cardKey);
     }
 
-    function updateCardDetails(selectElement, cardName) {
-        var cardSets = $(selectElement).find('option').map(function() {
-            return $(this).data('cardData');
-        }).get();
+    function updateCardDetails(selectElement, cardKey) {
+        var cardSets = $('#cardDetails-' + cardKey).data('cardSets');
         var selectedIndex = selectElement.value;
         var cardData = cardSets[selectedIndex];
 
@@ -264,7 +267,7 @@
             cardDetailsHTML += '<p><strong>' + property.name + ':</strong> ' + property.value + '</p>';
         });
 
-        $('#cardDetails-' + cardName.replace(/\s+/g, '')).html(cardDetailsHTML);
+        $('#cardDetails-' + cardKey).html(cardDetailsHTML);
     }
 
     function getImageUrl(cardData) {
