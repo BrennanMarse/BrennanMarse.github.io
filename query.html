@@ -284,7 +284,7 @@
             setCounts[cardData.setCode]++;
         });
 
-        var cardKey = cardName.replace(/\s+/g, '').replace(/,/g, ''); // Handle commas in card names
+        var cardKey = encodeURIComponent(cardName.replace(/\s+/g, '')); // Use encodeURIComponent to handle special characters
         var cardCellHTML = '<div class="card-cell">';
         cardCellHTML += '<p>' + cardName + '</p>';
         cardCellHTML += '<select onchange="updateCardDetails(this, \'' + cardKey + '\')">';
