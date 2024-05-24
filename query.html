@@ -284,7 +284,7 @@
             setCounts[cardData.setCode]++;
         });
 
-        var cardKey = cardName.replace(/\s+/g, '');
+        var cardKey = cardName.replace(/\s+/g, '').replace(/,/g, ''); // Handle commas in card names
         var cardCellHTML = '<div class="card-cell">';
         cardCellHTML += '<p>' + cardName + '</p>';
         cardCellHTML += '<select onchange="updateCardDetails(this, \'' + cardKey + '\')">';
@@ -326,7 +326,7 @@
     }
 
     function getImageUrl(cardData, setCount, version, callback) {
-        var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '%20');
+        var normalizedCardName = encodeURIComponent(cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '%20'));
         var baseImageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}`;
 
         if (setCount === 1) {
