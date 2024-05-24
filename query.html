@@ -81,12 +81,19 @@
         .card-cell {
             cursor: pointer;
             text-align: center;
+            border: 1px solid #ccc; /* Gray border around each element */
+            padding: 10px;
+            border-radius: 8px; /* Rounded corners */
+            background-color: #fff;
         }
         .card-image {
             width: 200px;
             height: auto; /* Ensure consistent image size */
             border: 3px solid black; /* Thicker border */
             border-radius: 8px; /* Rounded corners */
+        }
+        .card-cell p {
+            font-weight: bold; /* Make the card name bold */
         }
         .card-cell select {
             margin-top: 10px;
@@ -293,9 +300,13 @@
 
     function updateCardDetails(selectElement, cardKey) {
         var cardSets = $('#cardDetails-' + cardKey).data('cardSets');
+        if (!cardSets || cardSets.length === 0) return;
+        
         var setCounts = $('#cardDetails-' + cardKey).data('setCounts');
         var selectedIndex = selectElement.value;
         var cardData = cardSets[selectedIndex];
+
+        if (!cardData) return;
 
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
             var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
@@ -317,8 +328,12 @@
 
     function openCardModal(cardKey, selectedIndex) {
         var cardSets = $('#cardDetails-' + cardKey).data('cardSets');
+        if (!cardSets || cardSets.length === 0) return;
+
         var setCounts = $('#cardDetails-' + cardKey).data('setCounts');
         var cardData = cardSets[selectedIndex];
+
+        if (!cardData) return;
 
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
             $('#modalCardImage').attr('src', imageUrl);
