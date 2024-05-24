@@ -89,8 +89,6 @@
         .card-image {
             width: 200px;
             height: auto; /* Ensure consistent image size */
-            border: 3px solid black; /* Thicker border */
-            border-radius: 8px; /* Rounded corners */
         }
         .card-cell p {
             font-weight: bold; /* Make the card name bold */
@@ -151,8 +149,6 @@
         .modal-content img {
             max-width: 300px; /* Adjust width as needed */
             height: auto; /* Maintain aspect ratio */
-            border: 3px solid black; /* Thicker border */
-            border-radius: 8px; /* Rounded corners */
             margin-right: 20px;
         }
 
@@ -183,7 +179,6 @@
 
     function searchCard() {
         var cardName = $('#cardNameInput').val().trim().toLowerCase();
-        console.log('Searching for:', cardName); // Log the search term
         if (!cardName) {
             alert('Please enter a card name.');
             return;
@@ -191,7 +186,6 @@
 
         // Split the search term into words
         var searchWords = cardName.split(/\s+/);
-        console.log('Search words:', searchWords); // Log the search words
 
         // Clear previous results
         $('#cardGrid').empty();
@@ -201,7 +195,6 @@
 
         // Load sets from sets.json file
         $.getJSON('./data/sets.json', function(sets) {
-            console.log('Sets loaded:', sets); // Log the loaded sets
             var setsProcessed = 0;
 
             sets.forEach(function(set) {
@@ -211,12 +204,10 @@
                     dataType: 'xml',
                     success: function(xml) {
                         var setName = $(xml).find('set').attr('name'); // Get the full set name
-                        console.log('Processing set:', setName); // Log the set being processed
                         $(xml).find('card').each(function() {
                             var card = $(this);
                             var cardNameXML = card.attr('name');
                             if (cardNameXML && matchesSearchWords(cardNameXML.toLowerCase(), searchWords)) {
-                                console.log('Found matching card:', cardNameXML, 'in set:', set); // Log matching card
                                 var setCode = set; // Use the file name as the set code
                                 var cardId = card.attr('id');
 
@@ -239,7 +230,6 @@
                                 });
 
                                 matchingCards[cardNameXML].push(cardData);
-                                console.log('Card data:', cardData); // Log card data
                             }
                         });
 
@@ -295,8 +285,6 @@
         cardCellHTML += '<div id="cardDetails-' + cardKey + '"></div>';
         cardCellHTML += '</div>';
 
-        console.log('Displaying card:', cardName, 'with sets:', cardSets); // Log the card being displayed
-
         $('#cardGrid').append(cardCellHTML);
 
         // Store card sets data for later use
@@ -316,8 +304,6 @@
             console.error(`No card data found for key ${cardKey} and index ${selectedIndex}`);
             return;
         }
-
-        console.log('Updating card details for:', cardData); // Log the card details being updated
 
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
             var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
@@ -346,8 +332,6 @@
             console.error(`No card data found for key ${cardKey} and index ${selectedIndex}`);
             return;
         }
-
-        console.log('Opening modal for:', cardData); // Log the card data for the modal
 
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
             $('#modalCardImage').attr('src', imageUrl);
