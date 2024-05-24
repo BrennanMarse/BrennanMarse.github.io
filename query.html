@@ -302,13 +302,12 @@
         var cardSets = $('#cardDetails-' + cardKey).data('cardSets');
         var setCounts = $('#cardDetails-' + cardKey).data('setCounts');
         var selectedIndex = selectElement.value;
+        var cardData = cardSets[selectedIndex];
 
-        if (!cardSets || cardSets.length === 0 || !cardSets[selectedIndex]) {
+        if (!cardData) {
             console.error(`No card data found for key ${cardKey} and index ${selectedIndex}`);
             return;
         }
-
-        var cardData = cardSets[selectedIndex];
 
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
             var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
@@ -317,7 +316,7 @@
     }
 
     function getImageUrl(cardData, setCount, version, callback) {
-        var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '%20').replace(/,/g, '%2C');
+        var normalizedCardName = encodeURIComponent(cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '%20'));
         var baseImageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}`;
 
         if (setCount === 1) {
