@@ -300,13 +300,14 @@
 
     function updateCardDetails(selectElement, cardKey) {
         var cardSets = $('#cardDetails-' + cardKey).data('cardSets');
-        if (!cardSets || cardSets.length === 0) return;
-        
         var setCounts = $('#cardDetails-' + cardKey).data('setCounts');
         var selectedIndex = selectElement.value;
         var cardData = cardSets[selectedIndex];
 
-        if (!cardData) return;
+        if (!cardData) {
+            console.error(`No card data found for key ${cardKey} and index ${selectedIndex}`);
+            return;
+        }
 
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
             var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
@@ -328,12 +329,13 @@
 
     function openCardModal(cardKey, selectedIndex) {
         var cardSets = $('#cardDetails-' + cardKey).data('cardSets');
-        if (!cardSets || cardSets.length === 0) return;
-
         var setCounts = $('#cardDetails-' + cardKey).data('setCounts');
         var cardData = cardSets[selectedIndex];
 
-        if (!cardData) return;
+        if (!cardData) {
+            console.error(`No card data found for key ${cardKey} and index ${selectedIndex}`);
+            return;
+        }
 
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
             $('#modalCardImage').attr('src', imageUrl);
