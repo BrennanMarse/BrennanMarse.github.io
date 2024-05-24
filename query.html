@@ -179,12 +179,93 @@
 </section>
 
 <script>
-    // Function to handle special characters in card names
-    function normalizeCardName(cardName) {
-        return cardName.replace(/ \/\/ /g, '').replace(/ /g, '%20').replace(/,/g, '%2C');
+    var githubBaseUrl = 'https://raw.githubusercontent.com/BrennanMarse/images/main/images/cards/'; // Update with your GitHub raw URL
+
+    function searchCard() {
+        var cardName = $('#cardNameInput').val().trim().toLowerCase();
+        if (!cardName) {
+            alert('Please enter a card name.');
+            return;
+        }
+
+        // Split the search term into words
+        var searchWords = cardName.split(/\s+/);
+
+        // Clear previous results
+        $('#cardGrid').empty();
+
+        // Collect all matching cards
+        var matchingCards = {};
+
+        // Load sets from sets.json file
+        $.getJSON('./data/sets.json', function(sets) {
+            var setsProcessed = 0;
+
+            sets.forEach(function(set) {
+                $.ajax({
+                    type: 'GET',
+                    url: './data/' + set + '.xml',
+                    dataType: 'xml',
+                    success: function(xml) {
+                        var setName = $(xml).find('set').attr('name'); // Get the full set name
+                        $(xml).find('card').each(function() {
+                            var card = $(this);
+                            var cardNameXML = card.attr('name');
+                            if (cardNameXML && matchesSearchWords(cardNameXML.toLowerCase(), searchWords)) {
+                                var setCode = set; // Use the file name as the set code
+                                var cardId = card.attr('id');
+
+                                if (!matchingCards[cardNameXML]) {
+                                    matchingCards[cardNameXML] = [];
+                                }
+
+                                var cardData = {
+                                    id: cardId,
+                                    name: cardNameXML,
+                                    set: setName, // Use the full set name here
+                                    setCode: setCode, // Include the set code for later use
+                                    properties: []
+                                };
+
+                                card.children('property').each(function() {
+                                    var propertyName = $(this).attr('name');
+                                    var propertyValue = $(this).attr('value');
+                                    cardData.properties.push({ name: propertyName, value: propertyValue });
+                                });
+
+                                matchingCards[cardNameXML].push(cardData);
+                            }
+                        });
+
+                        setsProcessed++;
+                        if (setsProcessed === sets.length) {
+                            // Display the results
+                            for (var cardName in matchingCards) {
+                                displayCard(cardName, matchingCards[cardName]);
+                            }
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading set:', set, status, error);
+                        setsProcessed++;
+                        if (setsProcessed === sets.length) {
+                            // Display the results
+                            for (var cardName in matchingCards) {
+                                displayCard(cardName, matchingCards[cardName]);
+                            }
+                        }
+                    }
+                });
+            });
+        }).fail(function() {
+            alert('Error loading sets data.');
+        });
     }
 
-    // Function to display a card with dropdown for sets
+    function matchesSearchWords(cardName, searchWords) {
+        return searchWords.every(word => new RegExp('\\b' + word + '\\b', 'i').test(cardName));
+    }
+
     function displayCard(cardName, cardSets) {
         cardSets.sort((a, b) => a.setCode.localeCompare(b.setCode)); // Sort by set code
 
@@ -199,7 +280,7 @@
 
         var cardKey = cardName.replace(/\s+/g, '');
         var cardCellHTML = '<div class="card-cell">';
-        cardCellHTML += '<p><b>' + cardName + '</b></p>';
+        cardCellHTML += '<p>' + cardName + '</p>';
         cardCellHTML += '<select onchange="updateCardDetails(this, \'' + cardKey + '\')">';
         cardSets.forEach(function(cardData, index) {
             cardCellHTML += '<option value="' + index + '">' + cardData.set + ' [' + cardData.setCode + ']</option>';
@@ -217,17 +298,17 @@
         updateCardDetails($('select').last()[0], cardKey);
     }
 
-    // Function to update card details when a new set is selected
     function updateCardDetails(selectElement, cardKey) {
         var cardSets = $('#cardDetails-' + cardKey).data('cardSets');
         var setCounts = $('#cardDetails-' + cardKey).data('setCounts');
         var selectedIndex = selectElement.value;
-        var cardData = cardSets[selectedIndex];
 
-        if (!cardData) {
+        if (!cardSets || cardSets.length === 0 || !cardSets[selectedIndex]) {
             console.error(`No card data found for key ${cardKey} and index ${selectedIndex}`);
             return;
         }
+
+        var cardData = cardSets[selectedIndex];
 
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
             var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
@@ -235,9 +316,8 @@
         });
     }
 
-    // Function to generate the image URL
     function getImageUrl(cardData, setCount, version, callback) {
-        var normalizedCardName = normalizeCardName(cardData.name);
+        var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '%20').replace(/,/g, '%2C');
         var baseImageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}`;
 
         if (setCount === 1) {
@@ -248,7 +328,6 @@
         }
     }
 
-    // Function to open a modal with card details
     function openCardModal(cardKey, selectedIndex) {
         var cardSets = $('#cardDetails-' + cardKey).data('cardSets');
         var setCounts = $('#cardDetails-' + cardKey).data('setCounts');
