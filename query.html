@@ -246,7 +246,14 @@
                         }
                     },
                     error: function(xhr, status, error) {
-                        // Removed console.error line
+                        console.error('Error loading set:', set, status, error);
+                        setsProcessed++;
+                        if (setsProcessed === sets.length) {
+                            // Display the results
+                            for (var cardName in matchingCards) {
+                                displayCard(cardName, matchingCards[cardName]);
+                            }
+                        }
                     }
                 });
             });
@@ -301,8 +308,6 @@
             console.error(`No card data found for key ${cardKey} and index ${selectedIndex}`);
             return;
         }
-
-        console.log(cardData); // Log the card data to the console
 
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
             var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
