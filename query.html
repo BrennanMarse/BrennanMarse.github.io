@@ -309,6 +309,8 @@
             return;
         }
 
+        console.log(cardData); // Log the card data to the console
+
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
             var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
             $('#cardDetails-' + cardKey).html(cardDetailsHTML);
