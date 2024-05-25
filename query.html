@@ -279,6 +279,9 @@
                                 allMatchingCards.push({ cardName: cardName, cardSets: matchingCards[cardName] });
                             }
 
+                            // Sort the results alphabetically by card name
+                            allMatchingCards.sort((a, b) => a.cardName.localeCompare(b.cardName));
+
                             // Display the first page of results
                             displayPage(1);
                         }
@@ -291,6 +294,9 @@
                             for (var cardName in matchingCards) {
                                 allMatchingCards.push({ cardName: cardName, cardSets: matchingCards[cardName] });
                             }
+
+                            // Sort the results alphabetically by card name
+                            allMatchingCards.sort((a, b) => a.cardName.localeCompare(b.cardName));
 
                             // Display the first page of results
                             displayPage(1);
