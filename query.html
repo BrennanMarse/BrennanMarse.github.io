@@ -413,6 +413,9 @@
 
     function getImageUrl(cardData, setCount, version, callback) {
         var normalizedCardName = encodeURIComponent(cardData.name.replace(/ \/\/ /g, ''));
+        if (cardData.name.includes('//')) {
+            normalizedCardName = cardData.name.replace(/ \/\/ /g, '');
+        }
         var baseImageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}`;
 
         if (setCount === 1) {
