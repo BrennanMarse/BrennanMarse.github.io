@@ -420,7 +420,7 @@
                 .replace(/'/g, '%27') // Encode single quotes
                 .replace(/"/g, '') // Remove double quotes
                 .replace(/:/g, '') // Remove colons
-                .replace(/\s\/\s*/g, '') // Remove single slash
+                .replace(/\//g, '') // Remove single slash
 
             var baseImageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}`;
 
