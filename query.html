@@ -183,6 +183,7 @@
             display: flex;
             justify-content: center;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
         .pagination button {
             padding: 10px 20px;
@@ -192,7 +193,7 @@
             background-color: #333;
             color: #fff;
             cursor: pointer;
-            margin: 0 5px;
+            margin: 5px;
         }
         .pagination button:hover {
             background-color: #555;
@@ -215,7 +216,7 @@
     <div id="cardDetailsModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <img id="modalCardImage" src="" alt="Card Image" onerror="this.onerror=null;this.src='placeholder_modal.png';">
+            <img id="modalCardImage" src="" alt="Card Image">
             <div id="cardDetails" class="details"></div>
         </div>
     </div>
@@ -223,22 +224,11 @@
 
 <script>
     var githubBaseUrl = 'https://raw.githubusercontent.com/BrennanMarse/images/main/images/cards/'; // Update with your GitHub raw URL
-    var placeholderImageUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" width="223" height="310">' +
-        '<rect width="100%" height="100%" fill="#ddd"/>' +
-        '<text x="50%" y="50%" font-size="16" fill="#888" text-anchor="middle" dominant-baseline="middle">Image not found</text>' +
-        '</svg>'
-    );
-    var placeholderModalImageUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" width="290" height="403">' +
-        '<rect width="100%" height="100%" fill="#ddd"/>' +
-        '<text x="50%" y="50%" font-size="16" fill="#888" text-anchor="middle" dominant-baseline="middle">Image not found</text>' +
-        '</svg>'
-    );
 
     var currentPage = 1;
     var cardsPerPage = 12;
     var allMatchingCards = [];
+    var maxPageNumbersToShow = 5; // Maximum number of page numbers to display at once
 
     function searchCard() {
         var cardName = $('#cardNameInput').val().trim().toLowerCase();
@@ -352,8 +342,23 @@
         // Create pagination controls
         var totalPages = Math.ceil(allMatchingCards.length / cardsPerPage);
         if (totalPages > 1) {
-            for (var i = 1; i <= totalPages; i++) {
+            var startPage = Math.max(1, page - Math.floor(maxPageNumbersToShow / 2));
+            var endPage = Math.min(totalPages, startPage + maxPageNumbersToShow - 1);
+
+            if (endPage - startPage < maxPageNumbersToShow - 1) {
+                startPage = Math.max(1, endPage - maxPageNumbersToShow + 1);
+            }
+
+            if (startPage > 1) {
+                $('#paginationControls').append('<button onclick="displayPage(1)">First</button>');
+            }
+
+            for (var i = startPage; i <= endPage; i++) {
                 $('#paginationControls').append('<button onclick="displayPage(' + i + ')"' + (i === page ? ' disabled' : '') + '>' + i + '</button>');
+            }
+
+            if (endPage < totalPages) {
+                $('#paginationControls').append('<button onclick="displayPage(' + totalPages + ')">Last</button>');
             }
         }
     }
@@ -406,7 +411,7 @@
         }
 
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
-            var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onerror="this.onerror=null;this.src=\'' + placeholderImageUrl + '\';" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
+            var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
             $('#cardDetails-' + cardKey).html(cardDetailsHTML);
         });
     }
@@ -437,9 +442,7 @@
         }
 
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
-            $('#modalCardImage').attr('src', imageUrl).on('error', function() {
-                this.src = placeholderModalImageUrl;
-            });
+            $('#modalCardImage').attr('src', imageUrl);
 
             var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
             cardData.properties.forEach(function(property) {
