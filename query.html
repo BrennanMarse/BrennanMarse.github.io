@@ -419,7 +419,8 @@
                 .replace(/,/g, '%2C') // Encode commas
                 .replace(/'/g, '%27') // Encode single quotes
                 .replace(/"/g, '') // Remove double quotes
-                .replace(/:/g, ''); // Remove colons
+                .replace(/:/g, '') // Remove colons
+                .replace(/\s\/\s*/g, '') // Remove single slash
 
             var baseImageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}`;
 
