@@ -157,6 +157,26 @@
         .modal-content .details {
             flex-grow: 1;
         }
+
+        /* Placeholder for image not found */
+        .placeholder {
+            width: 223px; /* Magic card width */
+            height: 310px; /* Magic card height */
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #888;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .modal .placeholder {
+            width: 290px; /* 30% larger than 223px */
+            height: 403px; /* 30% larger than 310px */
+            margin-right: 20px;
+        }
     </style>
 </head>
 <body>
@@ -170,7 +190,7 @@
     <div id="cardDetailsModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <img id="modalCardImage" src="" alt="Card Image">
+            <img id="modalCardImage" src="" alt="Card Image" onerror="this.onerror=null;this.src='placeholder_modal.png';">
             <div id="cardDetails" class="details"></div>
         </div>
     </div>
@@ -178,6 +198,18 @@
 
 <script>
     var githubBaseUrl = 'https://raw.githubusercontent.com/BrennanMarse/images/main/images/cards/'; // Update with your GitHub raw URL
+    var placeholderImageUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="223" height="310">' +
+        '<rect width="100%" height="100%" fill="#ddd"/>' +
+        '<text x="50%" y="50%" font-size="16" fill="#888" text-anchor="middle" dominant-baseline="middle">Image not found</text>' +
+        '</svg>'
+    );
+    var placeholderModalImageUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="290" height="403">' +
+        '<rect width="100%" height="100%" fill="#ddd"/>' +
+        '<text x="50%" y="50%" font-size="16" fill="#888" text-anchor="middle" dominant-baseline="middle">Image not found</text>' +
+        '</svg>'
+    );
 
     function searchCard() {
         var cardName = $('#cardNameInput').val().trim().toLowerCase();
@@ -311,7 +343,7 @@
         }
 
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
-            var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
+            var cardDetailsHTML = '<img src="' + imageUrl + '" alt="' + cardData.name + '" class="card-image" onerror="this.onerror=null;this.src=\'' + placeholderImageUrl + '\';" onclick="openCardModal(\'' + cardKey + '\', ' + selectedIndex + ')">';
             $('#cardDetails-' + cardKey).html(cardDetailsHTML);
         });
     }
@@ -339,7 +371,9 @@
         }
 
         getImageUrl(cardData, setCounts[cardData.setCode], selectedIndex, function(imageUrl) {
-            $('#modalCardImage').attr('src', imageUrl);
+            $('#modalCardImage').attr('src', imageUrl).on('error', function() {
+                this.src = placeholderModalImageUrl;
+            });
 
             var cardDetailsHTML = '<h2>' + cardData.name + ' [' + cardData.setCode + ']</h2>';
             cardData.properties.forEach(function(property) {
