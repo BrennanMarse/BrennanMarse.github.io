@@ -350,7 +350,9 @@
     }
 
     function sanitizeId(id) {
-        return id.replace(/[\s,\/]/g, '').replace(/'/g, '');
+        return id.replace(/[^\w-]/g, function(match) {
+            return '-' + match.charCodeAt(0).toString(16) + '-';
+        });
     }
 
     function displayCard(cardName, cardSets) {
