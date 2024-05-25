@@ -398,7 +398,7 @@
 
     function getImageUrl(cardData, setCount, version, callback) {
         var normalizedCardName = cardData.name
-            .replace(/ \/\/ /g, '') // Remove slashes and spaces around them
+            .replace(/ \/\/ /g, '') // Remove slashes and spaces around them for image URL only
             .replace(/ /g, '%20') // Encode spaces
             .replace(/,/g, '%2C') // Encode commas
             .replace(/'/g, '%27'); // Encode single quotes
