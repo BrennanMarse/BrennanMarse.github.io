@@ -177,6 +177,30 @@
             height: 403px; /* 30% larger than 310px */
             margin-right: 20px;
         }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        .pagination button:hover {
+            background-color: #555;
+        }
+        .pagination button:disabled {
+            background-color: #ccc;
+            cursor: default;
+        }
     </style>
 </head>
 <body>
@@ -186,6 +210,7 @@
     <button id="searchButton" onclick="searchCard()">Search</button>
     <div id="cardResults">
         <div class="card-grid" id="cardGrid"></div>
+        <div class="pagination" id="paginationControls"></div>
     </div>
     <div id="cardDetailsModal" class="modal">
         <div class="modal-content">
@@ -211,6 +236,10 @@
         '</svg>'
     );
 
+    var currentPage = 1;
+    var cardsPerPage = 12;
+    var allMatchingCards = [];
+
     function searchCard() {
         var cardName = $('#cardNameInput').val().trim().toLowerCase();
         if (!cardName) {
@@ -223,6 +252,9 @@
 
         // Clear previous results
         $('#cardGrid').empty();
+        $('#paginationControls').empty();
+        allMatchingCards = [];
+        currentPage = 1;
 
         // Collect all matching cards
         var matchingCards = {};
@@ -272,20 +304,26 @@
 
                         setsProcessed++;
                         if (setsProcessed === sets.length) {
-                            // Display the results
+                            // Collect all matching cards
                             for (var cardName in matchingCards) {
-                                displayCard(cardName, matchingCards[cardName]);
+                                allMatchingCards.push({ cardName: cardName, cardSets: matchingCards[cardName] });
                             }
+
+                            // Display the first page of results
+                            displayPage(1);
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error('Error loading set:', set, status, error);
                         setsProcessed++;
                         if (setsProcessed === sets.length) {
-                            // Display the results
+                            // Collect all matching cards
                             for (var cardName in matchingCards) {
-                                displayCard(cardName, matchingCards[cardName]);
+                                allMatchingCards.push({ cardName: cardName, cardSets: matchingCards[cardName] });
                             }
+
+                            // Display the first page of results
+                            displayPage(1);
                         }
                     }
                 });
@@ -297,6 +335,27 @@
 
     function matchesSearchWords(cardName, searchWords) {
         return searchWords.every(word => new RegExp('\\b' + word + '\\b', 'i').test(cardName));
+    }
+
+    function displayPage(page) {
+        $('#cardGrid').empty();
+        $('#paginationControls').empty();
+
+        var startIndex = (page - 1) * cardsPerPage;
+        var endIndex = startIndex + cardsPerPage;
+        var pageCards = allMatchingCards.slice(startIndex, endIndex);
+
+        pageCards.forEach(function(card) {
+            displayCard(card.cardName, card.cardSets);
+        });
+
+        // Create pagination controls
+        var totalPages = Math.ceil(allMatchingCards.length / cardsPerPage);
+        if (totalPages > 1) {
+            for (var i = 1; i <= totalPages; i++) {
+                $('#paginationControls').append('<button onclick="displayPage(' + i + ')"' + (i === page ? ' disabled' : '') + '>' + i + '</button>');
+            }
+        }
     }
 
     function displayCard(cardName, cardSets) {
