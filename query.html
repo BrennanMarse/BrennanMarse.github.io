@@ -397,12 +397,7 @@
     }
 
     function getImageUrl(cardData, setCount, version, callback) {
-        var normalizedCardName = cardData.name
-            .replace(/ \/\/ /g, '') // Remove slashes and spaces around them
-            .replace(/ /g, '%20') // Encode spaces
-            .replace(/,/g, '%2C') // Encode commas
-            .replace(/'/g, '%27'); // Encode single quotes
-        
+        var normalizedCardName = cardData.name.replace(/ \/\/ /g, '').replace(/ /g, '%20').replace(/,/g, '%2C').replace(/'/g, '%27');
         var baseImageUrl = `${githubBaseUrl}${cardData.setCode}/${normalizedCardName}`;
 
         if (setCount === 1) {
