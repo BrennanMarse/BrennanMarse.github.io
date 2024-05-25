@@ -228,7 +228,10 @@
                                 card.children('property').each(function() {
                                     var propertyName = $(this).attr('name');
                                     var propertyValue = $(this).attr('value');
-                                    cardData.properties.push({ name: propertyName, value: propertyValue });
+                                    // Exclude Artist, MultiverseId, and Number properties and empty properties
+                                    if (!['Artist', 'MultiverseId', 'Number'].includes(propertyName) && propertyValue.trim() !== '') {
+                                        cardData.properties.push({ name: propertyName, value: propertyValue });
+                                    }
                                 });
 
                                 matchingCards[cardNameXML].push(cardData);
