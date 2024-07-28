@@ -182,7 +182,7 @@
                 <h3>Printings:</h3>
                 <ul id="printings-list"></ul>
             `;
-            fetch(`https://api.scryfall.com/cards/search?q=!${card.name}`)
+            fetch(`https://api.scryfall.com/cards/${card.id}/prints`)
                 .then(response => response.json())
                 .then(data => {
                     const printingsList = document.getElementById('printings-list');
