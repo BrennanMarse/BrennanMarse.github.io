@@ -68,10 +68,43 @@
             background-color: #fff;
             width: 200px;
             text-align: center;
+            cursor: pointer;
         }
         .card img {
             max-width: 100%;
             height: auto;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -94,6 +127,15 @@
     <footer>
         &copy; 2024 TheScoutRunner's Website
     </footer>
+
+    <!-- Modal for card details -->
+    <div id="cardModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
     <script>
         document.getElementById('search-form').addEventListener('submit', function (event) {
             event.preventDefault();
@@ -116,33 +158,55 @@
             const cardResults = document.getElementById('card-results');
             cardResults.innerHTML = '';
 
-            const cardPrintings = {};
-
             cards.forEach(card => {
-                if (!cardPrintings[card.name]) {
-                    cardPrintings[card.name] = [];
-                }
-                cardPrintings[card.name].push(card);
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                cardElement.innerHTML = `
+                    <img src="${card.image_uris ? card.image_uris.normal : 'https://via.placeholder.com/200'}" alt="${card.name}">
+                    <h3>${card.name}</h3>
+                    <p>${card.set_name}</p>
+                `;
+                cardElement.addEventListener('click', () => showCardDetails(card));
+                cardResults.appendChild(cardElement);
             });
+        }
 
-            for (const cardName in cardPrintings) {
-                const cardGroup = document.createElement('div');
-                cardGroup.classList.add('card-group');
-                cardGroup.innerHTML = `<h2>${cardName}</h2>`;
-
-                cardPrintings[cardName].forEach(card => {
-                    const cardElement = document.createElement('div');
-                    cardElement.classList.add('card');
-                    cardElement.innerHTML = `
-                        <img src="${card.image_uris ? card.image_uris.normal : 'https://via.placeholder.com/200'}" alt="${card.name}">
-                        <h3>${card.set_name}</h3>
-                        <p>${card.type_line}</p>
-                        <p>${card.rarity}</p>
-                    `;
-                    cardGroup.appendChild(cardElement);
+        function showCardDetails(card) {
+            const modal = document.getElementById('cardModal');
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `
+                <h2>${card.name}</h2>
+                <img src="${card.image_uris ? card.image_uris.normal : 'https://via.placeholder.com/200'}" alt="${card.name}">
+                <p>${card.type_line}</p>
+                <p>${card.oracle_text}</p>
+                <h3>Printings:</h3>
+                <ul id="printings-list"></ul>
+            `;
+            fetch(`https://api.scryfall.com/cards/search?q=!${card.name}`)
+                .then(response => response.json())
+                .then(data => {
+                    const printingsList = document.getElementById('printings-list');
+                    data.data.forEach(printing => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${printing.set_name} (${printing.set})`;
+                        printingsList.appendChild(listItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching printings:', error);
                 });
 
-                cardResults.appendChild(cardGroup);
+            modal.style.display = "block";
+        }
+
+        const modal = document.getElementById('cardModal');
+        const span = document.getElementsByClassName('close')[0];
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
             }
         }
     </script>
