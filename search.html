@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTG Card Search</title>
+    <link rel="icon" type="image/x-icon" href="/images/me.ico">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: auto;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        nav {
+            background-color: #444;
+            padding: 10px 0;
+            text-align: center;
+        }
+        nav a {
+            text-decoration: none;
+            color: #fff;
+            padding: 0 10px;
+            transition: color 0.3s ease;
+        }
+        nav a:hover {
+            color: #ffcc00;
+        }
+        section {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            overflow: hidden;
+            background-color: #fff;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        #search-form {
+            margin-bottom: 20px;
+        }
+        #card-results {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .card {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px;
+            background-color: #fff;
+            width: 200px;
+            text-align: center;
+        }
+        .card img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>MTG Card Search</h1>
+    </header>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="search.html">Card Search</a>
+        <a href="#">About</a>
+    </nav>
+    <section>
+        <form id="search-form">
+            <input type="text" id="query" placeholder="Search for a card">
+            <button type="submit">Search</button>
+        </form>
+        <div id="card-results"></div>
+    </section>
+    <footer>
+        &copy; 2024 TheScoutRunner's Website
+    </footer>
+    <script>
+        document.getElementById('search-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const query = document.getElementById('query').value;
+            searchCards(query);
+        });
+
+        function searchCards(query) {
+            fetch(`https://api.scryfall.com/cards/search?q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayCards(data.data);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+        function displayCards(cards) {
+            const cardResults = document.getElementById('card-results');
+            cardResults.innerHTML = '';
+
+            cards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                cardElement.innerHTML = `
+                    <img src="${card.image_uris ? card.image_uris.normal : 'https://via.placeholder.com/200'}" alt="${card.name}">
+                    <h3>${card.name}</h3>
+                    <p>${card.type_line}</p>
+                    <p>${card.set_name}</p>
+                `;
+                cardResults.appendChild(cardElement);
+            });
+        }
+    </script>
+</body>
+</html>
