@@ -8,20 +8,25 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: auto;
+            margin: 0;
             padding: 0;
             background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
         header {
             background-color: #333;
             color: #fff;
             padding: 20px;
             text-align: center;
+            flex-shrink: 0;
         }
         nav {
             background-color: #444;
             padding: 10px 0;
             text-align: center;
+            flex-shrink: 0;
         }
         nav a {
             text-decoration: none;
@@ -37,36 +42,88 @@
             align-items: center;
             text-align: center;
             padding: 20px;
-            overflow: hidden;
             background-color: #fff;
-            margin: 20px;
+            margin: 20px auto;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
         }
         footer {
             background-color: #333;
             color: #fff;
             padding: 20px;
             text-align: center;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
+            flex-shrink: 0;
         }
         #search-form {
             margin-bottom: 20px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #query {
+            padding: 10px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #search-button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        #search-button:hover {
+            background-color: #45a049;
+        }
+        #suggestions {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #333;
+            color: white;
+            z-index: 1000;
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .suggestion-item:hover {
+            background-color: #444;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #fff;
+        }
+        .transparent {
+            opacity: 0.5;
         }
         #card-results {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
             justify-content: center;
+            flex-grow: 1;
+            overflow: hidden;
         }
         .card {
             border: 1px solid #ccc;
             border-radius: 8px;
             padding: 10px;
-            margin: 10px;
             background-color: #fff;
-            width: 200px;
             text-align: center;
             cursor: pointer;
         }
@@ -74,7 +131,7 @@
             max-width: 100%;
             height: auto;
         }
-        .modal {
+        .modal, .grid-modal {
             display: none;
             position: fixed;
             z-index: 1;
@@ -83,16 +140,20 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.4);
-            padding-top: 60px;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .modal-content {
+        .modal-content, .grid-modal-content {
             background-color: #fefefe;
-            margin: 5% auto;
             padding: 20px;
             border: 1px solid #888;
-            width: 80%;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90%;
+            overflow-y: auto;
         }
         .close {
             color: #aaa;
@@ -106,6 +167,57 @@
             text-decoration: none;
             cursor: pointer;
         }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            justify-content: center;
+        }
+        .grid-item {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #fff;
+            text-align: center;
+        }
+        .grid-item img {
+            width: 100%;
+            height: auto;
+        }
+        #change-printing {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        #change-printing:hover {
+            background-color: #45a049;
+        }
+        .pagination {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .pagination button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .pagination button:hover {
+            background-color: #45a049;
+        }
+        .pagination .page-info {
+            margin: 0 10px;
+            color: #4CAF50;
+        }
     </style>
 </head>
 <body>
@@ -113,52 +225,132 @@
         <h1>MTG Card Search</h1>
     </header>
     <nav>
-        <a href="index.html">Home</a>
+        <a href=".">Home</a>
         <a href="search.html">Card Search</a>
         <a href="#">About</a>
     </nav>
     <section>
         <form id="search-form">
-            <input type="text" id="query" placeholder="Search for a card">
-            <button type="submit">Search</button>
+            <div id="query-container">
+                <input type="text" id="query" placeholder="Search for a card" autocomplete="off">
+            </div>
+            <button id="search-button" type="submit">Search</button>
+            <div id="suggestions"></div>
         </form>
         <div id="card-results"></div>
+        <div class="pagination" id="card-pagination">
+            <button id="card-prev-page">&laquo;</button>
+            <span class="page-info" id="card-page-info"></span>
+            <button id="card-next-page">&raquo;</button>
+        </div>
     </section>
     <footer>
         &copy; 2024 TheScoutRunner's Website
     </footer>
 
     <!-- Modal for card details -->
-    <div id="cardModal" class="modal">
+    <div id="cardModal" class="modal" style="display: none;">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <span class="close" onclick="closeModal('cardModal')">&times;</span>
             <div id="modal-body"></div>
+            <button id="change-printing">Change Printing</button>
+        </div>
+    </div>
+
+    <!-- Grid Modal for changing printings -->
+    <div id="gridModal" class="grid-modal" style="display: none;">
+        <div class="grid-modal-content">
+            <span class="close" onclick="closeModal('gridModal')">&times;</span>
+            <div class="grid-container" id="grid-container"></div>
+            <div class="pagination" id="pagination">
+                <button id="prev-page">&laquo;</button>
+                <span class="page-info" id="page-info"></span>
+                <button id="next-page">&raquo;</button>
+            </div>
         </div>
     </div>
 
     <script>
-        document.getElementById('search-form').addEventListener('submit', function (event) {
+        const searchForm = document.getElementById('search-form');
+        const queryInput = document.getElementById('query');
+        const suggestionsBox = document.getElementById('suggestions');
+        const cardModal = document.getElementById('cardModal');
+        const gridModal = document.getElementById('gridModal');
+        const cardPageInfo = document.getElementById('card-page-info');
+        const gridPageInfo = document.getElementById('page-info');
+
+        let suggestionsList = [];
+
+        searchForm.addEventListener('submit', function (event) {
             event.preventDefault();
-            const query = document.getElementById('query').value;
+            const query = queryInput.value;
             searchCards(query);
         });
+
+        queryInput.addEventListener('input', function () {
+            const query = queryInput.value;
+            if (query.length > 2) {
+                fetch(`https://api.scryfall.com/cards/autocomplete?q=${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        suggestionsList = data.data;
+                        displaySuggestions(query);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching autocomplete suggestions:', error);
+                    });
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+
+        function displaySuggestions(query) {
+            suggestionsBox.innerHTML = '';
+            if (suggestionsList.length > 0) {
+                suggestionsBox.style.display = 'block';
+                suggestionsList.forEach(suggestion => {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.classList.add('suggestion-item');
+                    suggestionItem.innerHTML = suggestion.replace(new RegExp(query, 'gi'), match => `<span class="highlight">${match}</span>`);
+                    suggestionItem.addEventListener('click', () => {
+                        queryInput.value = suggestion;
+                        suggestionsBox.style.display = 'none';
+                        searchCards(suggestion);
+                    });
+                    suggestionsBox.appendChild(suggestionItem);
+                });
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
+        }
+
+        let cardsData = [];
+        let currentCardPage = 1;
+        const cardsPerPage = 9;
 
         function searchCards(query) {
             fetch(`https://api.scryfall.com/cards/search?q=${query}`)
                 .then(response => response.json())
                 .then(data => {
-                    displayCards(data.data);
+                    cardsData = data.data;
+                    displayCardPage(1);
+                    updateCardPagination();
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
                 });
         }
 
-        function displayCards(cards) {
+        function displayCardPage(page) {
             const cardResults = document.getElementById('card-results');
             cardResults.innerHTML = '';
+            currentCardPage = page;
 
-            cards.forEach(card => {
+            const start = (page - 1) * cardsPerPage;
+            const end = start + cardsPerPage;
+            const pageItems = cardsData.slice(start, end);
+
+            pageItems.forEach(card => {
                 const cardElement = document.createElement('div');
                 cardElement.classList.add('card');
                 cardElement.innerHTML = `
@@ -171,42 +363,141 @@
             });
         }
 
+        function updateCardPagination() {
+            const totalPages = Math.ceil(cardsData.length / cardsPerPage);
+            const pagination = document.getElementById('card-pagination');
+            const prevPageButton = document.getElementById('card-prev-page');
+            const nextPageButton = document.getElementById('card-next-page');
+
+            if (totalPages > 1) {
+                pagination.style.display = 'flex';
+                cardPageInfo.textContent = `${currentCardPage} of ${totalPages}`;
+            } else {
+                pagination.style.display = 'none';
+            }
+
+            prevPageButton.disabled = currentCardPage === 1;
+            nextPageButton.disabled = currentCardPage === totalPages;
+
+            prevPageButton.onclick = function() {
+                currentCardPage = currentCardPage > 1 ? currentCardPage - 1 : totalPages;
+                displayCardPage(currentCardPage);
+                cardPageInfo.textContent = `${currentCardPage} of ${totalPages}`;
+                updateCardPagination();
+            };
+
+            nextPageButton.onclick = function() {
+                currentCardPage = currentCardPage < totalPages ? currentCardPage + 1 : 1;
+                displayCardPage(currentCardPage);
+                cardPageInfo.textContent = `${currentCardPage} of ${totalPages}`;
+                updateCardPagination();
+            };
+        }
+
         function showCardDetails(card) {
-            const modal = document.getElementById('cardModal');
             const modalBody = document.getElementById('modal-body');
             modalBody.innerHTML = `
                 <h2>${card.name}</h2>
                 <img src="${card.image_uris ? card.image_uris.normal : 'https://via.placeholder.com/200'}" alt="${card.name}">
                 <p>${card.type_line}</p>
                 <p>${card.oracle_text}</p>
-                <h3>Printings:</h3>
-                <ul id="printings-list"></ul>
             `;
-            fetch(`https://api.scryfall.com/cards/${card.id}/prints`)
+            
+            // Store the current card globally for changing printing
+            window.currentCard = card;
+
+            cardModal.style.display = "flex";
+        }
+
+        document.getElementById('change-printing').addEventListener('click', function() {
+            const gridContainer = document.getElementById('grid-container');
+            const prevPageButton = document.getElementById('prev-page');
+            const nextPageButton = document.getElementById('next-page');
+            let currentPage = 1;
+            const itemsPerPage = 9;
+            let totalPages = 1;
+
+            gridContainer.innerHTML = '';
+
+            // Use the prints_search_uri to get all printings of the card
+            fetch(window.currentCard.prints_search_uri)
                 .then(response => response.json())
                 .then(data => {
-                    const printingsList = document.getElementById('printings-list');
-                    data.data.forEach(printing => {
-                        const listItem = document.createElement('li');
-                        listItem.textContent = `${printing.set_name} (${printing.set})`;
-                        printingsList.appendChild(listItem);
-                    });
+                    const sortedPrintings = data.data.sort((a, b) => a.set_name.localeCompare(b.set_name));
+                    totalPages = Math.ceil(sortedPrintings.length / itemsPerPage);
+
+                    function displayPage(page) {
+                        gridContainer.innerHTML = '';
+                        const start = (page - 1) * itemsPerPage;
+                        const end = start + itemsPerPage;
+                        const pageItems = sortedPrintings.slice(start, end);
+
+                        pageItems.forEach(printing => {
+                            const gridItem = document.createElement('div');
+                            gridItem.classList.add('grid-item');
+                            gridItem.innerHTML = `
+                                <h4>${printing.set_name}</h4>
+                                <img src="${printing.image_uris ? printing.image_uris.normal : 'https://via.placeholder.com/150'}" alt="${printing.name}">
+                            `;
+                            gridItem.addEventListener('click', () => changeCardPrinting(printing));
+                            gridContainer.appendChild(gridItem);
+                        });
+
+                        prevPageButton.disabled = currentPage === 1;
+                        nextPageButton.disabled = currentPage === totalPages;
+                    }
+
+                    if (totalPages > 1) {
+                        document.getElementById('pagination').style.display = 'flex';
+                        gridPageInfo.textContent = `${currentPage} of ${totalPages}`;
+                    } else {
+                        document.getElementById('pagination').style.display = 'none';
+                    }
+
+                    prevPageButton.onclick = function() {
+                        currentPage = currentPage > 1 ? currentPage - 1 : totalPages;
+                        displayPage(currentPage);
+                        gridPageInfo.textContent = `${currentPage} of ${totalPages}`;
+                    };
+
+                    nextPageButton.onclick = function() {
+                        currentPage = currentPage < totalPages ? currentPage + 1 : 1;
+                        displayPage(currentPage);
+                        gridPageInfo.textContent = `${currentPage} of ${totalPages}`;
+                    };
+
+                    displayPage(currentPage);
                 })
                 .catch(error => {
                     console.error('Error fetching printings:', error);
                 });
 
-            modal.style.display = "block";
+            gridModal.style.display = "flex";
+        });
+
+        function changeCardPrinting(printing) {
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `
+                <h2>${printing.name}</h2>
+                <img src="${printing.image_uris ? printing.image_uris.normal : 'https://via.placeholder.com/200'}" alt="${printing.name}">
+                <p>${printing.type_line}</p>
+                <p>${printing.oracle_text}</p>
+            `;
+            
+            // Hide the grid modal after selecting a printing
+            gridModal.style.display = "none";
         }
 
-        const modal = document.getElementById('cardModal');
-        const span = document.getElementsByClassName('close')[0];
-        span.onclick = function() {
-            modal.style.display = "none";
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
         }
+
         window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
+            if (event.target == cardModal) {
+                cardModal.style.display = "none";
+            }
+            if (event.target == gridModal) {
+                gridModal.style.display = "none";
             }
         }
     </script>
