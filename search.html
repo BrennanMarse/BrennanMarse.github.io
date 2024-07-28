@@ -80,7 +80,7 @@
         <h1>MTG Card Search</h1>
     </header>
     <nav>
-        <a href=".">Home</a>
+        <a href="index.html">Home</a>
         <a href="search.html">Card Search</a>
         <a href="#">About</a>
     </nav>
@@ -116,17 +116,34 @@
             const cardResults = document.getElementById('card-results');
             cardResults.innerHTML = '';
 
+            const cardPrintings = {};
+
             cards.forEach(card => {
-                const cardElement = document.createElement('div');
-                cardElement.classList.add('card');
-                cardElement.innerHTML = `
-                    <img src="${card.image_uris ? card.image_uris.normal : 'https://via.placeholder.com/200'}" alt="${card.name}">
-                    <h3>${card.name}</h3>
-                    <p>${card.type_line}</p>
-                    <p>${card.set_name}</p>
-                `;
-                cardResults.appendChild(cardElement);
+                if (!cardPrintings[card.name]) {
+                    cardPrintings[card.name] = [];
+                }
+                cardPrintings[card.name].push(card);
             });
+
+            for (const cardName in cardPrintings) {
+                const cardGroup = document.createElement('div');
+                cardGroup.classList.add('card-group');
+                cardGroup.innerHTML = `<h2>${cardName}</h2>`;
+
+                cardPrintings[cardName].forEach(card => {
+                    const cardElement = document.createElement('div');
+                    cardElement.classList.add('card');
+                    cardElement.innerHTML = `
+                        <img src="${card.image_uris ? card.image_uris.normal : 'https://via.placeholder.com/200'}" alt="${card.name}">
+                        <h3>${card.set_name}</h3>
+                        <p>${card.type_line}</p>
+                        <p>${card.rarity}</p>
+                    `;
+                    cardGroup.appendChild(cardElement);
+                });
+
+                cardResults.appendChild(cardGroup);
+            }
         }
     </script>
 </body>
