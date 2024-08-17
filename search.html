@@ -285,9 +285,18 @@
             const pageEntries = cards.slice(startIndex, endIndex);
 
             pageEntries.forEach(card => {
-                fetch(`https://api.scryfall.com/cards/${card.scryfallId}`)
+                // Use card name and set code to fetch the card details
+                const apiUrl = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&set=${encodeURIComponent(card.setCode)}`;
+
+                fetch(apiUrl)
                     .then(response => response.json())
                     .then(data => {
+                        // Handle cases where the exact printing isn't found
+                        if (data.status === 404) {
+                            console.error(`Card not found: ${card.name} in set ${card.setCode}`);
+                            return;
+                        }
+
                         const cardItem = document.createElement('div');
                         cardItem.className = 'card-item';
 
@@ -316,6 +325,7 @@
                     .catch(error => console.error('Error fetching card details:', error));
             });
         }
+
 
         function updatePagination(cards) {
             const paginationControls = document.getElementById('paginationControls');
