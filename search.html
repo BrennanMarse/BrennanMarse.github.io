@@ -271,74 +271,55 @@
     </div>
 
     <script>
-        const searchForm = document.getElementById('search-form');
-        const queryInput = document.getElementById('query');
-        const suggestionsBox = document.getElementById('suggestions');
-        const cardModal = document.getElementById('cardModal');
-        const gridModal = document.getElementById('gridModal');
-        const cardPageInfo = document.getElementById('card-page-info');
-        const gridPageInfo = document.getElementById('page-info');
-
-        let suggestionsList = [];
-
-        searchForm.addEventListener('submit', function (event) {
-            event.preventDefault();
-            const query = queryInput.value;
-            searchCards(query);
-        });
-
-        queryInput.addEventListener('input', function () {
-            const query = queryInput.value;
-            if (query.length > 2) {
-                fetch(`https://api.scryfall.com/cards/autocomplete?q=${query}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        suggestionsList = data.data;
-                        displaySuggestions(query);
-                    })
-                    .catch(error => {
-                        console.error('Error fetching autocomplete suggestions:', error);
-                    });
-            } else {
-                suggestionsBox.style.display = 'none';
-            }
-        });
-
-        function displaySuggestions(query) {
-            suggestionsBox.innerHTML = '';
-            if (suggestionsList.length > 0) {
-                suggestionsBox.style.display = 'block';
-                suggestionsList.forEach(suggestion => {
-                    const suggestionItem = document.createElement('div');
-                    suggestionItem.classList.add('suggestion-item');
-                    suggestionItem.innerHTML = suggestion.replace(new RegExp(query, 'gi'), match => `<span class="highlight">${match}</span>`);
-                    suggestionItem.addEventListener('click', () => {
-                        queryInput.value = suggestion;
-                        suggestionsBox.style.display = 'none';
-                        searchCards(suggestion);
-                    });
-                    suggestionsBox.appendChild(suggestionItem);
-                });
-            } else {
-                suggestionsBox.style.display = 'none';
-            }
-        }
-
+        let collection = [];
         let cardsData = [];
         let currentCardPage = 1;
         const cardsPerPage = 9;
 
-        function searchCards(query) {
-            fetch(`https://api.scryfall.com/cards/search?q=${query}`)
-                .then(response => response.json())
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('collection.csv')
+                .then(response => response.text())
                 .then(data => {
-                    cardsData = data.data;
+                    parseCSV(data);
+                })
+                .catch(error => console.error('Error loading collection:', error));
+        });
+
+        function parseCSV(contents) {
+            const rows = contents.split('\n').slice(1); // Skip header
+            collection = rows.map(row => {
+                const columns = row.split(',');
+                return {
+                    name: columns[2].trim(), // Column C: Name
+                    setCode: columns[3].trim(), // Column D: Set Code
+                    collectorNumber: columns[5].trim(), // Column F: Collector Number
+                    foil: columns[6].trim().toLowerCase() === 'foil', //
+                    foil: columns[6].trim().toLowerCase() === 'foil', // Column G: Foil
+                    quantity: parseInt(columns[8].trim()),  // Column I: Quantity
+                    scryfallId: columns[10].trim()          // Column K: Scryfall ID
+                };
+            });
+        }
+
+        function searchCards(query) {
+            const filteredCards = collection.filter(card => card.name.toLowerCase().includes(query.toLowerCase()));
+            if (filteredCards.length > 0) {
+                fetchCardDetails(filteredCards);
+            } else {
+                document.getElementById('card-results').innerHTML = '<p>No cards found in your collection.</p>';
+                document.getElementById('card-pagination').style.display = 'none';
+            }
+        }
+
+        function fetchCardDetails(cards) {
+            const requests = cards.map(card => fetch(`https://api.scryfall.com/cards/${card.scryfallId}`).then(res => res.json()));
+            Promise.all(requests)
+                .then(data => {
+                    cardsData = data;
                     displayCardPage(1);
                     updateCardPagination();
                 })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
-                });
+                .catch(error => console.error('Error fetching card details:', error));
         }
 
         function displayCardPage(page) {
@@ -379,14 +360,14 @@
             prevPageButton.disabled = currentCardPage === 1;
             nextPageButton.disabled = currentCardPage === totalPages;
 
-            prevPageButton.onclick = function() {
+            prevPageButton.onclick = function () {
                 currentCardPage = currentCardPage > 1 ? currentCardPage - 1 : totalPages;
                 displayCardPage(currentCardPage);
                 cardPageInfo.textContent = `${currentCardPage} of ${totalPages}`;
                 updateCardPagination();
             };
 
-            nextPageButton.onclick = function() {
+            nextPageButton.onclick = function () {
                 currentCardPage = currentCardPage < totalPages ? currentCardPage + 1 : 1;
                 displayCardPage(currentCardPage);
                 cardPageInfo.textContent = `${currentCardPage} of ${totalPages}`;
@@ -403,96 +384,16 @@
                 <p>${card.oracle_text}</p>
             `;
             
-            // Store the current card globally for changing printing
             window.currentCard = card;
 
             cardModal.style.display = "flex";
-        }
-
-        document.getElementById('change-printing').addEventListener('click', function() {
-            const gridContainer = document.getElementById('grid-container');
-            const prevPageButton = document.getElementById('prev-page');
-            const nextPageButton = document.getElementById('next-page');
-            let currentPage = 1;
-            const itemsPerPage = 9;
-            let totalPages = 1;
-
-            gridContainer.innerHTML = '';
-
-            // Use the prints_search_uri to get all printings of the card
-            fetch(window.currentCard.prints_search_uri)
-                .then(response => response.json())
-                .then(data => {
-                    const sortedPrintings = data.data.sort((a, b) => a.set_name.localeCompare(b.set_name));
-                    totalPages = Math.ceil(sortedPrintings.length / itemsPerPage);
-
-                    function displayPage(page) {
-                        gridContainer.innerHTML = '';
-                        const start = (page - 1) * itemsPerPage;
-                        const end = start + itemsPerPage;
-                        const pageItems = sortedPrintings.slice(start, end);
-
-                        pageItems.forEach(printing => {
-                            const gridItem = document.createElement('div');
-                            gridItem.classList.add('grid-item');
-                            gridItem.innerHTML = `
-                                <h4>${printing.set_name}</h4>
-                                <img src="${printing.image_uris ? printing.image_uris.normal : 'https://via.placeholder.com/150'}" alt="${printing.name}">
-                            `;
-                            gridItem.addEventListener('click', () => changeCardPrinting(printing));
-                            gridContainer.appendChild(gridItem);
-                        });
-
-                        prevPageButton.disabled = currentPage === 1;
-                        nextPageButton.disabled = currentPage === totalPages;
-                    }
-
-                    if (totalPages > 1) {
-                        document.getElementById('pagination').style.display = 'flex';
-                        gridPageInfo.textContent = `${currentPage} of ${totalPages}`;
-                    } else {
-                        document.getElementById('pagination').style.display = 'none';
-                    }
-
-                    prevPageButton.onclick = function() {
-                        currentPage = currentPage > 1 ? currentPage - 1 : totalPages;
-                        displayPage(currentPage);
-                        gridPageInfo.textContent = `${currentPage} of ${totalPages}`;
-                    };
-
-                    nextPageButton.onclick = function() {
-                        currentPage = currentPage < totalPages ? currentPage + 1 : 1;
-                        displayPage(currentPage);
-                        gridPageInfo.textContent = `${currentPage} of ${totalPages}`;
-                    };
-
-                    displayPage(currentPage);
-                })
-                .catch(error => {
-                    console.error('Error fetching printings:', error);
-                });
-
-            gridModal.style.display = "flex";
-        });
-
-        function changeCardPrinting(printing) {
-            const modalBody = document.getElementById('modal-body');
-            modalBody.innerHTML = `
-                <h2>${printing.name}</h2>
-                <img src="${printing.image_uris ? printing.image_uris.normal : 'https://via.placeholder.com/200'}" alt="${printing.name}">
-                <p>${printing.type_line}</p>
-                <p>${printing.oracle_text}</p>
-            `;
-            
-            // Hide the grid modal after selecting a printing
-            gridModal.style.display = "none";
         }
 
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = "none";
         }
 
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             if (event.target == cardModal) {
                 cardModal.style.display = "none";
             }
@@ -500,6 +401,12 @@
                 gridModal.style.display = "none";
             }
         }
+
+        searchForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const query = queryInput.value;
+            searchCards(query);
+        });
     </script>
 </body>
 </html>
