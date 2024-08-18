@@ -209,18 +209,19 @@
         /* Flip Animation */
         .card-flip-container {
             perspective: 1000px;
-            display: inline-block;
+            width: 100%; /* Ensures the container fills the available space */
+            max-width: 300px; /* Adjust to fit your card size */
+            margin: 0 auto; /* Center the card horizontally */
             position: relative;
-            width: 100%;
-            height: 100%;
         }
 
         .card-flip-inner {
             position: relative;
             width: 100%;
-            height: 100%;
+            height: auto; /* Adjusts height automatically based on content */
             transition: transform 0.6s;
             transform-style: preserve-3d;
+            overflow: hidden; /* Ensure the card contents don't overflow */
         }
 
         .card-flip-container.flipped .card-flip-inner {
@@ -232,15 +233,18 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
+            top: 0;
+            left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        .card-face.front {
-            z-index: 2;
-            transform: rotateY(0deg);
-        }
-
-        .card-face.back {
-            transform: rotateY(180deg);
+        .card-face img {
+            width: 100%; /* Ensures image takes full width of the container */
+            height: auto; /* Adjusts height automatically */
+            object-fit: contain; /* Keeps image aspect ratio and prevents clipping */
+            max-height: 400px; /* Prevents the image from being too tall */
         }
 
         .flip-button {
@@ -286,270 +290,267 @@
         &copy; 2024 TheScoutRunner's Website
     </footer>
 
-    <!-- Modal for card details -->
-    <div id="cardModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <div id="modal-body"></div>
+        <!-- Modal for card details -->
+        <div id="cardModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <div id="modal-body"></div>
+            </div>
         </div>
-    </div>
-
-    <script>
-        let collection = [];
-        let filteredCards = [];
-        let currentPage = 1;
-        const entriesPerPage = 25;
-
-        document.addEventListener('DOMContentLoaded', function () {
+    
+        <script>
+            let collection = [];
+            let filteredCards = [];
+            let currentPage = 1;
+            const entriesPerPage = 50;
+    
+            // Load the collection CSV directly from the server
             fetch('collection.csv')
                 .then(response => response.text())
-                .then(data => {
-                    parseCSV(data);
+                .then(text => parseCSV(text))
+                .then(() => {
                     displayPage(1, collection);
                     updatePagination(collection);
                 })
-                .catch(error => console.error('Error loading collection:', error));
-        });
-
-        function parseCSV(contents) {
-            const rows = contents.split('\n').slice(1); // Skip header
-            collection = rows.map(row => {
-                const columns = row.split(',');
-                return {
-                    name: columns[2].trim(), // Column C: Name
-                    setCode: columns[3].trim(), // Column D: Set Code
-                    collectorNumber: columns[5].trim(), // Column F: Collector Number
-                    foil: columns[6].trim().toLowerCase() === 'foil', // Column G: Foil
-                    quantity: parseInt(columns[8].trim()), // Column I: Quantity
-                    scryfallId: columns[10].trim() // Column K: Scryfall ID
+                .catch(error => console.error('Error loading the collection:', error));
+    
+            function parseCSV(contents) {
+                const rows = contents.split('\n').slice(1); // Skip header
+                collection = rows.map(row => {
+                    const columns = row.split(',');
+                    return {
+                        name: columns[2].trim(), // Column C: Name
+                        setCode: columns[3].trim(), // Column D: Set Code
+                        collectorNumber: columns[5].trim(), // Column F: Collector Number
+                        foil: columns[6].trim().toLowerCase() === 'foil', // Column G: Foil
+                        quantity: parseInt(columns[8].trim()), // Column I: Quantity
+                        scryfallId: columns[10].trim() // Column K: Scryfall ID
+                    };
+                });
+            }
+    
+            function displayPage(page, cards) {
+                const cardResults = document.getElementById('card-results');
+                cardResults.innerHTML = '';
+                currentPage = page;
+    
+                const startIndex = (page - 1) * entriesPerPage;
+                const endIndex = startIndex + entriesPerPage;
+                const pageEntries = cards.slice(startIndex, endIndex);
+    
+                pageEntries.forEach(card => {
+                    const apiUrl = `https://api.scryfall.com/cards/${card.scryfallId}`;
+    
+                    fetch(apiUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 404) {
+                                console.error(`Card not found: ${card.name} in set ${card.setCode}`);
+                                return;
+                            }
+    
+                            const cardItem = document.createElement('div');
+                            cardItem.className = 'card-item';
+    
+                            let imageUrl;
+                            if (data.image_uris) {
+                                imageUrl = data.image_uris.normal;
+                            } else if (data.card_faces && data.card_faces.length > 0) {
+                                imageUrl = data.card_faces[0].image_uris.normal;
+                            } else {
+                                console.error(`No image found for card: ${card.name}`);
+                                return;
+                            }
+    
+                            const image = document.createElement('img');
+                            image.src = imageUrl;
+                            image.alt = card.name;
+                            image.className = 'card-image';
+    
+                            cardItem.appendChild(image);
+    
+                            if (card.foil) {
+                                const foilOverlay = document.createElement('div');
+                                foilOverlay.className = 'foil-overlay';
+                                cardItem.appendChild(foilOverlay);
+                            }
+    
+                            const quantityBox = document.createElement('div');
+                            quantityBox.className = 'quantity-box';
+                            quantityBox.textContent = `x${card.quantity}`;
+                            cardItem.appendChild(quantityBox);
+    
+                            cardItem.addEventListener('click', () => showCardDetails(data));
+    
+                            cardResults.appendChild(cardItem);
+                        })
+                        .catch(error => console.error('Error fetching card details:', error));
+                });
+            }
+    
+            function updatePagination(cards) {
+                const paginationControls = document.getElementById('paginationControls');
+                const totalPages = Math.ceil(cards.length / entriesPerPage);
+                const pageInfo = document.getElementById('pageInfo');
+                const prevPageButton = document.getElementById('prevPage');
+                const nextPageButton = document.getElementById('nextPage');
+    
+                if (totalPages > 1) {
+                    paginationControls.style.display = 'flex';
+                    pageInfo.textContent = `${currentPage} of ${totalPages}`;
+                } else {
+                    paginationControls.style.display = 'none';
+                }
+    
+                prevPageButton.disabled = currentPage === 1;
+                nextPageButton.disabled = currentPage === totalPages;
+    
+                prevPageButton.onclick = function () {
+                    currentPage = currentPage > 1 ? currentPage - 1 : totalPages;
+                    displayPage(currentPage, cards);
+                    pageInfo.textContent = `${currentPage} of ${totalPages}`;
                 };
+    
+                nextPageButton.onclick = function () {
+                    currentPage = currentPage < totalPages ? currentPage + 1 : 1;
+                    displayPage(currentPage, cards);
+                    pageInfo.textContent = `${currentPage} of ${totalPages}`;
+                };
+            }
+    
+            function searchCards(query) {
+                filteredCards = collection.filter(card => card.name.toLowerCase().includes(query.toLowerCase()));
+                if (filteredCards.length > 0) {
+                    displayPage(1, filteredCards);
+                    updatePagination(filteredCards);
+                } else {
+                    document.getElementById('card-results').innerHTML = '<p>No cards found in your collection.</p>';
+                    document.getElementById('paginationControls').style.display = 'none';
+                }
+            }
+    
+            function showCardDetails(card) {
+                const modalBody = document.getElementById('modal-body');
+                modalBody.innerHTML = ''; // Clear previous content
+    
+                const title = document.createElement('h2');
+                title.textContent = card.name;
+                modalBody.appendChild(title);
+    
+                const cardFlipContainer = document.createElement('div');
+                cardFlipContainer.className = 'card-flip-container';
+                const cardFlipInner = document.createElement('div');
+                cardFlipInner.className = 'card-flip-inner';
+    
+                const frontFace = document.createElement('div');
+                frontFace.className = 'card-face front';
+    
+                const backFace = document.createElement('div');
+                backFace.className = 'card-face back';
+    
+                let imageUrl;
+    
+                if (card.image_uris) {
+                    // Single-faced card
+                    imageUrl = card.image_uris.normal;
+                    const image = document.createElement('img');
+                    image.src = imageUrl;
+                    image.alt = card.name;
+                    frontFace.appendChild(image);
+                } else if (card.card_faces && card.card_faces.length > 0) {
+                    // Double-faced or transforming card
+                    const frontImageUrl = card.card_faces[0].image_uris.normal;
+                    const frontImage = document.createElement('img');
+                    frontImage.src = frontImageUrl;
+                    frontImage.alt = card.card_faces[0].name;
+                    frontFace.appendChild(frontImage);
+    
+                    const backImageUrl = card.card_faces[1].image_uris.normal;
+                    const backImage = document.createElement('img');
+                    backImage.src = backImageUrl;
+                    backImage.alt = card.card_faces[1].name;
+                    backFace.appendChild(backImage);
+                } else {
+                    console.error(`No image available for card: ${card.name}`);
+                    return;
+                }
+    
+                cardFlipInner.appendChild(frontFace);
+                cardFlipInner.appendChild(backFace);
+                cardFlipContainer.appendChild(cardFlipInner);
+                modalBody.appendChild(cardFlipContainer);
+    
+                const flipButton = document.createElement('button');
+                flipButton.className = 'flip-button';
+                flipButton.textContent = 'Flip Card';
+                flipButton.onclick = function () {
+                    cardFlipContainer.classList.toggle('flipped');
+                };
+                modalBody.appendChild(flipButton);
+    
+                const typeLine = document.createElement('p');
+                typeLine.textContent = card.type_line;
+                modalBody.appendChild(typeLine);
+    
+                const oracleText = document.createElement('p');
+                oracleText.textContent = card.oracle_text;
+                modalBody.appendChild(oracleText);
+    
+                const setInfo = document.createElement('p');
+                setInfo.innerHTML = `<strong>Set:</strong> ${card.set_name}`;
+                modalBody.appendChild(setInfo);
+    
+                const rarityInfo = document.createElement('p');
+                rarityInfo.innerHTML = `<strong>Rarity:</strong> ${card.rarity}`;
+                modalBody.appendChild(rarityInfo);
+    
+                document.getElementById('cardModal').style.display = 'flex';
+            }
+    
+            function closeModal() {
+                document.getElementById('cardModal').style.display = 'none';
+            }
+    
+            document.getElementById('search-form').addEventListener('submit', function (event) {
+                event.preventDefault();
+                const query = document.getElementById('query').value;
+                searchCards(query);
             });
-        }
-
-        function displayPage(page, cards) {
-            const cardResults = document.getElementById('card-results');
-            cardResults.innerHTML = '';
-            currentPage = page;
-
-            const startIndex = (page - 1) * entriesPerPage;
-            const endIndex = startIndex + entriesPerPage;
-            const pageEntries = cards.slice(startIndex, endIndex);
-
-            pageEntries.forEach(card => {
-                const apiUrl = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&set=${encodeURIComponent(card.setCode)}`;
-
-                fetch(apiUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 404) {
-                            console.error(`Card not found: ${card.name} in set ${card.setCode}`);
-                            return;
-                        }
-
-                        const cardItem = document.createElement('div');
-                        cardItem.className = 'card-item';
-
-                        let imageUrl;
-                        if (data.image_uris) {
-                            imageUrl = data.image_uris.normal;
-                        } else if (data.card_faces && data.card_faces.length > 0) {
-                            imageUrl = data.card_faces[0].image_uris.normal;
-                        } else {
-                            console.error(`No image found for card: ${card.name}`);
-                            return;
-                        }
-
-                        const image = document.createElement('img');
-                        image.src = imageUrl;
-                        image.alt = card.name;
-                        image.className = 'card-image';
-
-                        cardItem.appendChild(image);
-
-                        if (card.foil) {
-                            const foilOverlay = document.createElement('div');
-                            foilOverlay.className = 'foil-overlay';
-                            cardItem.appendChild(foilOverlay);
-                        }
-
-                        const quantityBox = document.createElement('div');
-                        quantityBox.className = 'quantity-box';
-                        quantityBox.textContent = `x${card.quantity}`;
-                        cardItem.appendChild(quantityBox);
-
-                        cardItem.addEventListener('click', () => showCardDetails(data));
-
-                        cardResults.appendChild(cardItem);
-                    })
-                    .catch(error => console.error('Error fetching card details:', error));
-            });
-        }
-
-        function updatePagination(cards) {
-            const paginationControls = document.getElementById('paginationControls');
-            const totalPages = Math.ceil(cards.length / entriesPerPage);
-            const pageInfo = document.getElementById('pageInfo');
-            const prevPageButton = document.getElementById('prevPage');
-            const nextPageButton = document.getElementById('nextPage');
-
-            if (totalPages > 1) {
-                paginationControls.style.display = 'flex';
-                pageInfo.textContent = `${currentPage} of ${totalPages}`;
-            } else {
-                paginationControls.style.display = 'none';
-            }
-
-            prevPageButton.disabled = currentPage === 1;
-            nextPageButton.disabled = currentPage === totalPages;
-
-            prevPageButton.onclick = function () {
-                currentPage = currentPage > 1 ? currentPage - 1 : totalPages;
-                displayPage(currentPage, cards);
-                pageInfo.textContent = `${currentPage} of ${totalPages}`;
-            };
-
-            nextPageButton.onclick = function () {
-                currentPage = currentPage < totalPages ? currentPage + 1 : 1;
-                displayPage(currentPage, cards);
-                pageInfo.textContent = `${currentPage} of ${totalPages}`;
-            };
-        }
-
-        function searchCards(query) {
-            filteredCards = collection.filter(card => card.name.toLowerCase().includes(query.toLowerCase()));
-            if (filteredCards.length > 0) {
-                displayPage(1, filteredCards);
-                updatePagination(filteredCards);
-            } else {
-                document.getElementById('card-results').innerHTML = '<p>No cards found in your collection.</p>';
-                document.getElementById('paginationControls').style.display = 'none';
-            }
-        }
-
-        function showCardDetails(card) {
-            const modalBody = document.getElementById('modal-body');
-            modalBody.innerHTML = ''; // Clear previous content
-
-            const title = document.createElement('h2');
-            title.textContent = card.name;
-            modalBody.appendChild(title);
-
-            const cardFlipContainer = document.createElement('div');
-            cardFlipContainer.className = 'card-flip-container';
-            const cardFlipInner = document.createElement('div');
-            cardFlipInner.className = 'card-flip-inner';
-
-            const frontFace = document.createElement('div');
-            frontFace.className = 'card-face front';
-
-            const backFace = document.createElement('div');
-            backFace.className = 'card-face back';
-
-            let imageUrl;
-
-            if (card.image_uris) {
-                // Single-faced card
-                imageUrl = card.image_uris.normal;
-                console.log('Single-faced card image URL:', imageUrl);
-                const image = document.createElement('img');
-                image.src = imageUrl;
-                image.alt = card.name;
-                frontFace.appendChild(image);
-            } else if (card.card_faces && card.card_faces.length > 0) {
-                // Double-faced or transforming card
-                const frontImageUrl = card.card_faces[0].image_uris.normal;
-                console.log('Front face image URL:', frontImageUrl);
-                const frontImage = document.createElement('img');
-                frontImage.src = frontImageUrl;
-                frontImage.alt = card.card_faces[0].name;
-                frontFace.appendChild(frontImage);
-
-                const backImageUrl = card.card_faces[1].image_uris.normal;
-                console.log('Back face image URL:', backImageUrl);
-                const backImage = document.createElement('img');
-                backImage.src = backImageUrl;
-                backImage.alt = card.card_faces[1].name;
-                backFace.appendChild(backImage);
-            } else {
-                console.error(`No image available for card: ${card.name}`);
-                return;
-            }
-
-            cardFlipInner.appendChild(frontFace);
-            cardFlipInner.appendChild(backFace);
-            cardFlipContainer.appendChild(cardFlipInner);
-            modalBody.appendChild(cardFlipContainer);
-
-            const flipButton = document.createElement('button');
-            flipButton.className = 'flip-button';
-            flipButton.textContent = 'Flip Card';
-            flipButton.onclick = function () {
-                cardFlipContainer.classList.toggle('flipped');
-            };
-            modalBody.appendChild(flipButton);
-
-            const typeLine = document.createElement('p');
-            typeLine.textContent = card.type_line;
-            modalBody.appendChild(typeLine);
-
-            const oracleText = document.createElement('p');
-            oracleText.textContent = card.oracle_text;
-            modalBody.appendChild(oracleText);
-
-            const setInfo = document.createElement('p');
-            setInfo.innerHTML = `<strong>Set:</strong> ${card.set_name}`;
-            modalBody.appendChild(setInfo);
-
-            const rarityInfo = document.createElement('p');
-            rarityInfo.innerHTML = `<strong>Rarity:</strong> ${card.rarity}`;
-            modalBody.appendChild(rarityInfo);
-
-            document.getElementById('cardModal').style.display = 'flex';
-        }
-
-
-        function closeModal() {
-            document.getElementById('cardModal').style.display = 'none';
-        }
-
-        document.getElementById('search-form').addEventListener('submit', function (event) {
-            event.preventDefault();
-            const query = document.getElementById('query').value;
-            searchCards(query);
-        });
-
-        document.getElementById('query').addEventListener('input', function () {
-            const query = this.value.toLowerCase();
-            const suggestions = document.getElementById('suggestions');
-            suggestions.innerHTML = '';
-            if (query.length > 0) {
-                const matchingCards = collection.filter(card => card.name.toLowerCase().startsWith(query));
-                if (matchingCards.length > 0) {
-                    suggestions.style.display = 'block';
-                    matchingCards.forEach(card => {
-                        const suggestionItem = document.createElement('div');
-                        suggestionItem.className = 'suggestion-item';
-                        suggestionItem.innerHTML = `<span class="highlight">${card.name.substring(0, query.length)}</span>${card.name.substring(query.length)}`;
-                        suggestionItem.addEventListener('click', () => {
-                            document.getElementById('query').value = card.name;
-                            suggestions.style.display = 'none';
-                            searchCards(card.name);
+    
+            document.getElementById('query').addEventListener('input', function () {
+                const query = this.value.toLowerCase();
+                const suggestions = document.getElementById('suggestions');
+                suggestions.innerHTML = '';
+                if (query.length > 0) {
+                    const matchingCards = collection.filter(card => card.name.toLowerCase().startsWith(query));
+                    if (matchingCards.length > 0) {
+                        suggestions.style.display = 'block';
+                        matchingCards.forEach(card => {
+                            const suggestionItem = document.createElement('div');
+                            suggestionItem.className = 'suggestion-item';
+                            suggestionItem.innerHTML = `<span class="highlight">${card.name.substring(0, query.length)}</span>${card.name.substring(query.length)}`;
+                            suggestionItem.addEventListener('click', () => {
+                                document.getElementById('query').value = card.name;
+                                suggestions.style.display = 'none';
+                                searchCards(card.name);
+                            });
+                            suggestions.appendChild(suggestionItem);
                         });
-                        suggestions.appendChild(suggestionItem);
-                    });
+                    } else {
+                        suggestions.style.display = 'none';
+                    }
                 } else {
                     suggestions.style.display = 'none';
                 }
-            } else {
-                suggestions.style.display = 'none';
-            }
-        });
+            });
 
-        window.onclick = function (event) {
-            if (event.target == document.getElementById('cardModal')) {
-                closeModal();
+            // Close modal when clicking outside of it
+            window.onclick = function (event) {
+                const modal = document.getElementById('cardModal');
+                if (event.target == modal) {
+                    closeModal();
+                }
             }
-        }
-    </script>
-</body>
+        </script>
+    </body>
 </html>
