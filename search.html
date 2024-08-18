@@ -430,6 +430,8 @@
             }
         
             function showCardDetails(card) {
+                console.log(card); // Check if the card object is passed correctly
+
                 const modalBody = document.getElementById('modal-body');
                 modalBody.innerHTML = ''; // Clear previous content
 
@@ -448,28 +450,37 @@
                 const backFace = document.createElement('div');
                 backFace.className = 'card-face back';
 
+                console.log(card.image_uris); // Check if single-faced card image URIs exist
+                console.log(card.card_faces); // Check if double-faced card data exists
+
                 // Handle single-faced and double-faced cards
+                let imageUrl = null;
                 if (card.image_uris && card.image_uris.normal) {
                     // Single-faced card
+                    imageUrl = card.image_uris.normal;
                     const image = document.createElement('img');
-                    image.src = card.image_uris.normal;
+                    image.src = imageUrl;
                     image.alt = card.name;
                     frontFace.appendChild(image);
                 } else if (card.card_faces && card.card_faces.length > 0) {
                     // Double-faced or transforming card
+                    imageUrl = card.card_faces[0].image_uris.normal;
                     const frontImage = document.createElement('img');
-                    frontImage.src = card.card_faces[0].image_uris.normal;
+                    frontImage.src = imageUrl;
                     frontImage.alt = card.card_faces[0].name;
                     frontFace.appendChild(frontImage);
 
+                    const backImageUrl = card.card_faces[1].image_uris.normal;
                     const backImage = document.createElement('img');
-                    backImage.src = card.card_faces[1].image_uris.normal;
+                    backImage.src = backImageUrl;
                     backImage.alt = card.card_faces[1].name;
                     backFace.appendChild(backImage);
                 } else {
                     console.error(`No image available for card: ${card.name}`);
                     return;
                 }
+
+                console.log('Appending image:', imageUrl);
 
                 cardFlipInner.appendChild(frontFace);
                 cardFlipInner.appendChild(backFace);
@@ -505,6 +516,7 @@
 
                 document.getElementById('cardModal').style.display = 'flex';
             }
+
 
 
         
