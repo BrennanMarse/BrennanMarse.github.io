@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,52 +8,143 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #f8f8f8;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
         }
 
         h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .search-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .search-container input[type="text"] {
+            padding: 10px;
+            width: 60%;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .search-container input[type="submit"] {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .search-container input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .card-container {
+            position: relative;
+            width: 100%;
+            padding-top: 150%; /* 2:3 aspect ratio */
+        }
+
+        .card-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-container .foil-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            z-index: 2;
+            background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
+            opacity: 0.5;
+        }
+
+        .card-container .quantity-badge {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 5px;
+            border-radius: 3px;
+            font-size: 14px;
+            z-index: 3;
+        }
+
+        .pagination {
+            text-align: center;
             margin: 20px 0;
         }
 
-        #search-container {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        #search-container input[type="text"] {
-            padding: 10px;
-            width: 300px;
+        .pagination button {
+            padding: 10px 15px;
+            margin: 0 5px;
             font-size: 16px;
-        }
-
-        #search-container button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #28a745;
-            color: white;
+            background-color: #4CAF50;
+            color: #fff;
             border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .pagination button:hover {
+            background-color: #45a049;
         }
 
         #suggestions {
-            position: absolute;
-            background-color: white;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #fff;
             border: 1px solid #ccc;
-            max-width: 300px;
+            border-radius: 4px;
+            position: absolute;
+            width: 60%;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 1000;
             display: none;
-            margin-top: 5px;
-            width: 100%;
         }
 
         .suggestion-item {
-            padding: 10px;
             cursor: pointer;
+            padding: 10px;
+            background-color: white;
+            border-bottom: 1px solid #ccc;
         }
 
         .suggestion-item:hover {
@@ -63,290 +155,222 @@
             font-weight: bold;
         }
 
-        #cardContainer {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .card {
-            position: relative;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            overflow: hidden;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .card img {
-            width: 100%;
-            height: auto;
-        }
-
-        .quantity-badge {
-            position: absolute;
-            bottom: 8px;
-            right: 8px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 2px 5px;
-            font-size: 12px;
-            border-radius: 3px;
-        }
-
-        .foil-card {
-            background: linear-gradient(135deg, #ff00ff 0%, #00ffff 100%);
-            background-blend-mode: overlay;
-        }
-
-        #cardModal {
+        /* Modal Styles */
+        .modal {
             display: none;
             position: fixed;
-            top: 0;
+            z-index: 1000;
             left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.75);
-            display: flex;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
             justify-content: center;
             align-items: center;
-            z-index: 1000;
         }
 
         .modal-content {
-            background-color: white;
+            background-color: #fff;
             padding: 20px;
             border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
             text-align: center;
             position: relative;
-            max-width: 500px;
-            width: 100%;
         }
 
         .modal-content img {
-            width: 100%;
+            max-width: 100%;
             height: auto;
-            max-width: 300px;
-            margin: 0 auto;
-            display: block;
+            margin-bottom: 20px;
         }
 
-        .modal-content .flip-button {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            margin-top: 10px;
-            display: none;
+        .modal-content h2 {
+            margin-top: 0;
         }
 
-        .close-modal {
+        .close {
             position: absolute;
             top: 10px;
             right: 10px;
-            background-color: transparent;
-            border: none;
-            font-size: 20px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
             cursor: pointer;
         }
 
-        #pagination {
-            margin-top: 20px;
-        }
-
-        #pagination button {
-            padding: 10px 20px;
-            margin: 0 5px;
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
             cursor: pointer;
-        }
-
-        #pagination .page-info {
-            display: inline-block;
-            margin: 0 10px;
         }
     </style>
 </head>
+
 <body>
+    <header>
+        MTG Card Search
+    </header>
 
-<h1>MTG Card Search</h1>
+    <div class="container">
+        <h1>MTG Card Search</h1>
+        <div class="search-container">
+            <input type="text" id="query" placeholder="Search for a card">
+            <input type="submit" value="Search" onclick="searchCards()">
+            <div id="suggestions"></div>
+        </div>
 
-<div id="search-container">
-    <input type="text" id="query" placeholder="Search for a card">
-    <button onclick="searchCards()">Search</button>
-    <div id="suggestions"></div>
-</div>
+        <div id="cardContainer" class="card-grid">
+            <!-- Cards will be dynamically loaded here -->
+        </div>
 
-<div id="cardContainer"></div>
-
-<div id="pagination">
-    <button id="prevPage" onclick="changePage(-1)">Previous</button>
-    <span class="page-info" id="pageInfo">1 of 1</span>
-    <button id="nextPage" onclick="changePage(1)">Next</button>
-</div>
-
-<div id="cardModal">
-    <div class="modal-content">
-        <button class="close-modal" onclick="closeModal()">×</button>
-        <img id="cardImage" src="" alt="Card Image">
-        <h2 id="cardName"></h2>
-        <p id="cardText"></p>
-        <button class="flip-button" id="flipCard" onclick="flipCard()">Flip Card</button>
+        <div class="pagination">
+            <button id="prevPage" onclick="changePage(-1)">Previous</button>
+            <button id="nextPage" onclick="changePage(1)">Next</button>
+        </div>
     </div>
-</div>
 
-<script>
-    let collection = [];
-    let currentPage = 1;
-    const cardsPerPage = 50;
-    let currentCard = null;
-    let flipped = false;
+    <!-- Modal for card details -->
+    <div id="cardModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="cardTitle">Card Title</h2>
+            <img id="cardImage" src="" alt="Card Image">
+            <p id="cardText"></p>
+            <button id="flipButton" onclick="flipCard()">Flip Card</button>
+        </div>
+    </div>
 
-    async function loadCollection() {
-        const response = await fetch('collection.csv'); // Ensure this file is in the correct location
-        const data = await response.text();
-        const rows = data.split('\n').slice(1); // Remove the header row
-        collection = rows.map(row => {
-            const cols = row.split(',');
-            return {
-                Name: cols[2].trim(),
-                SetCode: cols[3].trim(),
-                CollectorNumber: cols[5].trim(),
-                Foil: cols[6].trim().toLowerCase() === 'foil',
-                Quantity: parseInt(cols[8].trim()),
-                ScryfallID: cols[10].trim()
-            };
-        });
-        displayCards(collection.slice(0, cardsPerPage));
-        updatePagination();
-    }
+    <script>
+        let collection = []; // This should be replaced with the actual collection data from the CSV
+        let currentPage = 1;
+        const cardsPerPage = 25;
 
-    function displayCards(cards) {
-        const container = document.getElementById('cardContainer');
-        container.innerHTML = '';
-        cards.forEach(card => {
-            const cardElement = document.createElement('div');
-            cardElement.className = 'card';
-            if (card.Foil) {
-                cardElement.classList.add('foil-card');
-            }
-            cardElement.innerHTML = `
-                <img src="https://api.scryfall.com/cards/${card.ScryfallID}?format=image" alt="${card.Name}">
-                <div class="quantity-badge">x${card.Quantity}</div>
-            `;
-            cardElement.addEventListener('click', () => showCardDetails(card));
-            container.appendChild(cardElement);
-        });
-    }
-
-    function showCardDetails(card) {
-        currentCard = card;
-        const modal = document.getElementById('cardModal');
-        const image = document.getElementById('cardImage');
-        const name = document.getElementById('cardName');
-        const text = document.getElementById('cardText');
-        const flipButton = document.getElementById('flipCard');
-
-        flipped = false;
-
-        fetch(`https://api.scryfall.com/cards/${card.ScryfallID}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.image_uris) {
-                    image.src = data.image_uris.normal;
-                    flipButton.style.display = 'none';
-                } else if (data.card_faces) {
-                    image.src = data.card_faces[0].image_uris.normal;
-                    flipButton.style.display = 'inline-block';
-                } else {
-                    image.src = '';
-                    flipButton.style.display = 'none';
-                }
-                name.textContent = data.name;
-                text.textContent = data.oracle_text;
-                modal.style.display = 'flex';
-            });
-    }
-
-    function flipCard() {
-        if (currentCard) {
-            const image = document.getElementById('cardImage');
-            const flipButton = document.getElementById('flipCard');
-            fetch(`https://api.scryfall.com/cards/${currentCard.ScryfallID}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.card_faces && data.card_faces.length > 1) {
-                        flipped = !flipped;
-                        const faceIndex = flipped ? 1 : 0;
-                        image.src = data.card_faces[faceIndex].image_uris.normal;
-                    }
-                });
-        }
-    }
-
-    function closeModal() {
-        document.getElementById('cardModal').style.display = 'none';
-    }
-
-    function changePage(direction) {
-        const totalPages = Math.ceil(collection.length / cardsPerPage);
-        currentPage += direction;
-
-        if (currentPage < 1) {
-            currentPage = totalPages;
-        } else if (currentPage > totalPages) {
-            currentPage = 1;
-        }
-
-        const start = (currentPage - 1) * cardsPerPage;
-        const end = start + cardsPerPage;
-        displayCards(collection.slice(start, end));
-        updatePagination();
-    }
-
-    function updatePagination() {
-        const totalPages = Math.ceil(collection.length / cardsPerPage);
-        document.getElementById('pageInfo').textContent = `${currentPage} of ${totalPages}`;
-    }
-
-    document.getElementById('query').addEventListener('input', function () {
-        const query = this.value.toLowerCase();
-        const suggestions = document.getElementById('suggestions');
-        suggestions.innerHTML = '';
-        if (query.length > 0) {
-            const matchingCards = collection.filter(card => card.Name.toLowerCase().startsWith(query));
-            if (matchingCards.length > 0) {
-                suggestions.style.display = 'block';
-                matchingCards.forEach(card => {
-                    const suggestionItem = document.createElement('div');
-                    suggestionItem.className = 'suggestion-item';
-                    suggestionItem.innerHTML = `<span class="highlight">${card.Name.substring(0, query.length)}</span>${card.Name.substring(query.length)}`;
-                    suggestionItem.addEventListener('click', () => {
-                        document.getElementById('query').value = card.Name;
-                        suggestions.style.display = 'none';
-                        searchCards(card.Name);
+        document.getElementById('query').addEventListener('input', function () {
+            const query = this.value.toLowerCase();
+            const suggestions = document.getElementById('suggestions');
+            suggestions.innerHTML = '';
+            if (query.length > 0) {
+                const matchingCards = collection.filter(card => card.Name.toLowerCase().startsWith(query)).slice(0, 25); // Limit to 25 results
+                if (matchingCards.length > 0) {
+                    suggestions.style.display = 'block';
+                    matchingCards.forEach(card => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.className = 'suggestion-item';
+                        suggestionItem.innerHTML = `<span class="highlight">${card.Name.substring(0, query.length)}</span>${card.Name.substring(query.length)}`;
+                        suggestionItem.addEventListener('click', () => {
+                            document.getElementById('query').value = card.Name;
+                            suggestions.style.display = 'none';
+                            searchCards(card.Name);
+                        });
+                        suggestions.appendChild(suggestionItem);
                     });
-                    suggestions.appendChild(suggestionItem);
-                });
+                } else {
+                    suggestions.style.display = 'none';
+                }
             } else {
                 suggestions.style.display = 'none';
             }
-        } else {
-            suggestions.style.display = 'none';
+        });
+
+        function searchCards(query = '') {
+            const filteredCards = collection.filter(card => card.Name.toLowerCase().includes(query.toLowerCase())).slice(0, 25);
+            currentPage = 1;
+            displayCards(filteredCards.slice(0, cardsPerPage));
+            updatePagination();
         }
-    });
 
-    function searchCards(query = '') {
-        const filteredCards = collection.filter(card => card.Name.toLowerCase().includes(query.toLowerCase()));
-        currentPage = 1;
-        displayCards(filteredCards.slice(0, cardsPerPage));
-        updatePagination();
-    }
+        function displayCards(cards) {
+            const cardContainer = document.getElementById('cardContainer');
+            cardContainer.innerHTML = '';
+            cards.forEach(card => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card-container';
+                cardDiv.innerHTML = `
+                    <img src="${card.imageUrl}" alt="${card.Name}">
+                    ${card.foil === 'foil' ? '<div class="foil-card"></div>' : ''}
+                    <div class="quantity-badge">x${card.Quantity}</div>
+                `;
+                cardDiv.addEventListener('click', () => showCardDetails(card));
+                cardContainer.appendChild(cardDiv);
+            });
+        }
 
-    window.onload = loadCollection;
-</script>
+        function changePage(direction) {
+            currentPage += direction;
+            // Fetch and display the appropriate page's worth of cards
+            const startIndex = (currentPage - 1) * cardsPerPage;
+            const endIndex = startIndex + cardsPerPage;
+            displayCards(collection.slice(startIndex, endIndex));
+            updatePagination();
+        }
 
+        function updatePagination() {
+            const totalCards = collection.length;
+            const totalPages = Math.ceil(totalCards / cardsPerPage);
+            document.getElementById('prevPage').style.display = currentPage > 1 ? 'inline-block' : 'none';
+            document.getElementById('nextPage').style.display = currentPage < totalPages ? 'inline-block' : 'none';
+        }
+
+        function showCardDetails(card) {
+            const modal = document.getElementById('cardModal');
+            const cardImage = document.getElementById('cardImage');
+            const cardTitle = document.getElementById('cardTitle');
+            const cardText = document.getElementById('cardText');
+            const flipButton = document.getElementById('flipButton');
+
+            cardTitle.textContent = card.Name;
+            cardImage.src = card.imageUrl; // Set the main image URL
+            cardText.textContent = `${card.Description || ''}`;
+            
+            if (card.card_faces && card.card_faces.length > 1) {
+                flipButton.style.display = 'block';
+            } else {
+                flipButton.style.display = 'none';
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('cardModal').style.display = 'none';
+        }
+
+        function flipCard() {
+            const cardImage = document.getElementById('cardImage');
+            const card = collection.find(card => card.imageUrl === cardImage.src);
+            if (card && card.card_faces && card.card_faces.length > 1) {
+                const currentFace = card.card_faces.find(face => face.image_uris.normal === cardImage.src);
+                const nextFace = card.card_faces.find(face => face.image_uris.normal !== cardImage.src);
+                cardImage.src = nextFace.image_uris.normal;
+            }
+        }
+
+        // Load initial collection and display first page
+        window.onload = () => {
+            fetch('collection.csv')
+                .then(response => response.text())
+                .then(csvText => {
+                    collection = csvToJSON(csvText); // Convert the CSV to a JSON array
+                    displayCards(collection.slice(0, cardsPerPage)); // Display the first 25 cards
+                    updatePagination(); // Set up the pagination
+                });
+        };
+
+        function csvToJSON(csvText) {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',');
+            return lines.slice(1).map(line => {
+                const values = line.split(',');
+                return headers.reduce((object, header, index) => {
+                    object[header.trim()] = values[index].trim();
+                    return object;
+                }, {});
+            });
+        }
+    </script>
 </body>
+
 </html>
