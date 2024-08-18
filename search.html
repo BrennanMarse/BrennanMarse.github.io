@@ -205,6 +205,57 @@
             cursor: pointer;
             z-index: 12;
         }
+
+        /* Flip Animation */
+        .card-flip-container {
+            perspective: 1000px;
+            display: inline-block;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .card-flip-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .card-flip-container.flipped .card-flip-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+        }
+
+        .card-face.front {
+            z-index: 2;
+            transform: rotateY(0deg);
+        }
+
+        .card-face.back {
+            transform: rotateY(180deg);
+        }
+
+        .flip-button {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .flip-button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -285,13 +336,11 @@
             const pageEntries = cards.slice(startIndex, endIndex);
 
             pageEntries.forEach(card => {
-                // Use card name and set code to fetch the card details
                 const apiUrl = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(card.name)}&set=${encodeURIComponent(card.setCode)}`;
 
                 fetch(apiUrl)
                     .then(response => response.json())
                     .then(data => {
-                        // Handle cases where the exact printing isn't found
                         if (data.status === 404) {
                             console.error(`Card not found: ${card.name} in set ${card.setCode}`);
                             return;
@@ -304,7 +353,7 @@
                         if (data.image_uris) {
                             imageUrl = data.image_uris.normal;
                         } else if (data.card_faces && data.card_faces.length > 0) {
-                            imageUrl = data.card_faces[0].image_uris.normal; // Use the image of the first face
+                            imageUrl = data.card_faces[0].image_uris.normal;
                         } else {
                             console.error(`No image found for card: ${card.name}`);
                             return;
@@ -385,31 +434,57 @@
             title.textContent = card.name;
             modalBody.appendChild(title);
 
+            const cardFlipContainer = document.createElement('div');
+            cardFlipContainer.className = 'card-flip-container';
+            const cardFlipInner = document.createElement('div');
+            cardFlipInner.className = 'card-flip-inner';
+
+            const frontFace = document.createElement('div');
+            frontFace.className = 'card-face front';
+
+            const backFace = document.createElement('div');
+            backFace.className = 'card-face back';
+
             if (card.image_uris) {
                 // Single-faced card
                 const image = document.createElement('img');
                 image.src = card.image_uris.normal;
                 image.alt = card.name;
-                modalBody.appendChild(image);
+                image.style.display = "block";
+                image.style.margin = "0 auto"; // Center the image
+                frontFace.appendChild(image);
             } else if (card.card_faces && card.card_faces.length > 0) {
                 // Double-faced or transforming card
-                card.card_faces.forEach(face => {
-                    const faceTitle = document.createElement('h3');
-                    faceTitle.textContent = face.name;
-                    modalBody.appendChild(faceTitle);
+                const frontImage = document.createElement('img');
+                frontImage.src = card.card_faces[0].image_uris.normal;
+                frontImage.alt = card.card_faces[0].name;
+                frontImage.style.display = "block";
+                frontImage.style.margin = "0 auto"; // Center the image
+                frontFace.appendChild(frontImage);
 
-                    if (face.image_uris && face.image_uris.normal) {
-                        const image = document.createElement('img');
-                        image.src = face.image_uris.normal;
-                        image.alt = face.name;
-                        modalBody.appendChild(image);
-                    } else {
-                        console.error(`No image found for card face: ${face.name}`);
-                    }
-                });
+                const backImage = document.createElement('img');
+                backImage.src = card.card_faces[1].image_uris.normal;
+                backImage.alt = card.card_faces[1].name;
+                backImage.style.display = "block";
+                backImage.style.margin = "0 auto"; // Center the image
+                backFace.appendChild(backImage);
             } else {
                 console.error(`No image available for card: ${card.name}`);
+                return;
             }
+
+            cardFlipInner.appendChild(frontFace);
+            cardFlipInner.appendChild(backFace);
+            cardFlipContainer.appendChild(cardFlipInner);
+            modalBody.appendChild(cardFlipContainer);
+
+            const flipButton = document.createElement('button');
+            flipButton.className = 'flip-button';
+            flipButton.textContent = 'Flip Card';
+            flipButton.onclick = function () {
+                cardFlipContainer.classList.toggle('flipped');
+            };
+            modalBody.appendChild(flipButton);
 
             const typeLine = document.createElement('p');
             typeLine.textContent = card.type_line;
