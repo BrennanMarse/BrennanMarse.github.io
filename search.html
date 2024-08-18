@@ -398,11 +398,17 @@
                     faceTitle.textContent = face.name;
                     modalBody.appendChild(faceTitle);
 
-                    const image = document.createElement('img');
-                    image.src = face.image_uris.normal;
-                    image.alt = face.name;
-                    modalBody.appendChild(image);
+                    if (face.image_uris && face.image_uris.normal) {
+                        const image = document.createElement('img');
+                        image.src = face.image_uris.normal;
+                        image.alt = face.name;
+                        modalBody.appendChild(image);
+                    } else {
+                        console.error(`No image found for card face: ${face.name}`);
+                    }
                 });
+            } else {
+                console.error(`No image available for card: ${card.name}`);
             }
 
             const typeLine = document.createElement('p');
