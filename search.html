@@ -432,80 +432,80 @@
             function showCardDetails(card) {
                 const modalBody = document.getElementById('modal-body');
                 modalBody.innerHTML = ''; // Clear previous content
-        
+
                 const title = document.createElement('h2');
                 title.textContent = card.name;
                 modalBody.appendChild(title);
-        
+
                 const cardFlipContainer = document.createElement('div');
                 cardFlipContainer.className = 'card-flip-container';
                 const cardFlipInner = document.createElement('div');
                 cardFlipInner.className = 'card-flip-inner';
-        
+
                 const frontFace = document.createElement('div');
                 frontFace.className = 'card-face front';
-        
+
                 const backFace = document.createElement('div');
                 backFace.className = 'card-face back';
-        
-                let imageUrl;
-        
+
+                // Handle single-faced and double-faced cards
                 if (card.image_uris) {
                     // Single-faced card
-                    imageUrl = card.image_uris.normal;
                     const image = document.createElement('img');
-                    image.src = imageUrl;
+                    image.src = card.image_uris.normal;
                     image.alt = card.name;
                     frontFace.appendChild(image);
                 } else if (card.card_faces && card.card_faces.length > 0) {
                     // Double-faced or transforming card
-                    const frontImageUrl = card.card_faces[0].image_uris.normal;
                     const frontImage = document.createElement('img');
-                    frontImage.src = frontImageUrl;
+                    frontImage.src = card.card_faces[0].image_uris.normal;
                     frontImage.alt = card.card_faces[0].name;
                     frontFace.appendChild(frontImage);
-        
-                    const backImageUrl = card.card_faces[1].image_uris.normal;
+
                     const backImage = document.createElement('img');
-                    backImage.src = backImageUrl;
+                    backImage.src = card.card_faces[1].image_uris.normal;
                     backImage.alt = card.card_faces[1].name;
                     backFace.appendChild(backImage);
                 } else {
                     console.error(`No image available for card: ${card.name}`);
                     return;
                 }
-        
+
                 cardFlipInner.appendChild(frontFace);
                 cardFlipInner.appendChild(backFace);
                 cardFlipContainer.appendChild(cardFlipInner);
                 modalBody.appendChild(cardFlipContainer);
-        
-                const flipButton = document.createElement('button');
-                flipButton.className = 'flip-button';
-                flipButton.textContent = 'Flip Card';
-                flipButton.onclick = function () {
-                    cardFlipContainer.classList.toggle('flipped');
-                };
-                modalBody.appendChild(flipButton);
-        
+
+                // Add flip button for double-faced cards
+                if (card.card_faces && card.card_faces.length > 0) {
+                    const flipButton = document.createElement('button');
+                    flipButton.className = 'flip-button';
+                    flipButton.textContent = 'Flip Card';
+                    flipButton.onclick = function () {
+                        cardFlipContainer.classList.toggle('flipped');
+                    };
+                    modalBody.appendChild(flipButton);
+                }
+
                 const typeLine = document.createElement('p');
                 typeLine.textContent = card.type_line;
                 modalBody.appendChild(typeLine);
-        
+
                 const oracleText = document.createElement('p');
                 oracleText.textContent = card.oracle_text;
                 modalBody.appendChild(oracleText);
-        
+
                 const setInfo = document.createElement('p');
                 setInfo.innerHTML = `<strong>Set:</strong> ${card.set_name}`;
                 modalBody.appendChild(setInfo);
-        
+
                 const rarityInfo = document.createElement('p');
                 rarityInfo.innerHTML = `<strong>Rarity:</strong> ${card.rarity}`;
                 modalBody.appendChild(rarityInfo);
-        
+
                 document.getElementById('cardModal').style.display = 'flex';
             }
+
         
             function closeModal() {
                 document.getElementById('cardModal').style.display = 'none';
