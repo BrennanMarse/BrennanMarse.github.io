@@ -379,14 +379,48 @@
 
         function showCardDetails(card) {
             const modalBody = document.getElementById('modal-body');
-            modalBody.innerHTML = `
-                <h2>${card.name}</h2>
-                <img src="${card.image_uris.normal}" alt="${card.name}">
-                <p>${card.type_line}</p>
-                <p>${card.oracle_text}</p>
-                <p><strong>Set:</strong> ${card.set_name}</p>
-                <p><strong>Rarity:</strong> ${card.rarity}</p>
-            `;
+            modalBody.innerHTML = ''; // Clear previous content
+
+            const title = document.createElement('h2');
+            title.textContent = card.name;
+            modalBody.appendChild(title);
+
+            if (card.image_uris) {
+                // Single-faced card
+                const image = document.createElement('img');
+                image.src = card.image_uris.normal;
+                image.alt = card.name;
+                modalBody.appendChild(image);
+            } else if (card.card_faces && card.card_faces.length > 0) {
+                // Double-faced or transforming card
+                card.card_faces.forEach(face => {
+                    const faceTitle = document.createElement('h3');
+                    faceTitle.textContent = face.name;
+                    modalBody.appendChild(faceTitle);
+
+                    const image = document.createElement('img');
+                    image.src = face.image_uris.normal;
+                    image.alt = face.name;
+                    modalBody.appendChild(image);
+                });
+            }
+
+            const typeLine = document.createElement('p');
+            typeLine.textContent = card.type_line;
+            modalBody.appendChild(typeLine);
+
+            const oracleText = document.createElement('p');
+            oracleText.textContent = card.oracle_text;
+            modalBody.appendChild(oracleText);
+
+            const setInfo = document.createElement('p');
+            setInfo.innerHTML = `<strong>Set:</strong> ${card.set_name}`;
+            modalBody.appendChild(setInfo);
+
+            const rarityInfo = document.createElement('p');
+            rarityInfo.innerHTML = `<strong>Rarity:</strong> ${card.rarity}`;
+            modalBody.appendChild(rarityInfo);
+
             document.getElementById('cardModal').style.display = 'flex';
         }
 
@@ -435,4 +469,3 @@
     </script>
 </body>
 </html>
-
