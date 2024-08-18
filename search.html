@@ -7,54 +7,174 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background-color: #f0f0f0;
         }
 
-        h1 {
-            margin-top: 20px;
-        }
-
-        #search-form {
-            margin: 20px 0;
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
             text-align: center;
         }
 
-        #query {
-            padding: 10px;
-            width: 300px;
-            font-size: 16px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
+        nav {
+            background-color: #444;
+            padding: 10px 0;
+            text-align: center;
         }
 
-        #search-button {
+        nav a {
+            text-decoration: none;
+            color: #fff;
+            padding: 0 15px;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #ffcc00;
+        }
+
+        #cardContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            justify-items: center;
+        }
+
+        .card {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .quantity-box {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background-color: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            padding: 5px 8px;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+
+        /* Modal Styles */
+        #cardModal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.75);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .modal-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .modal-content h2 {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+
+        .flip-button {
+            background-color: #28a745;
+            color: #fff;
             padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 4px;
             border: none;
-            background-color: #4CAF50;
-            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .flip-button:hover {
+            background-color: #218838;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 24px;
+            color: #333;
             cursor: pointer;
         }
 
-        #search-button:hover {
-            background-color: #45a049;
+        .close:hover {
+            color: #ff0000;
+        }
+
+        /* Search bar */
+        .search-container {
+            text-align: center;
+            margin: 20px;
+        }
+
+        .search-container input {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .search-container button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            background-color: #28a745;
+            color: #fff;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .search-container button:hover {
+            background-color: #218838;
         }
 
         #suggestions {
             position: absolute;
-            width: 300px;
-            background-color: white;
+            background-color: #fff;
             border: 1px solid #ccc;
+            width: 300px;
             max-height: 200px;
             overflow-y: auto;
             display: none;
-            z-index: 1000;
+            z-index: 1001;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .suggestion-item {
@@ -68,382 +188,97 @@
 
         .highlight {
             font-weight: bold;
-        }
-
-        #card-results {
-            width: 90%;
-            max-width: 1200px;
-            margin-top: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .card-item {
-            width: 200px;
-            margin: 10px;
-            text-align: center;
-            position: relative;
-        }
-
-        .card-image {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 8px;
-        }
-
-        .foil-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, rgba(255, 0, 0, 0.2), rgba(255, 255, 0, 0.2), rgba(0, 255, 0, 0.2), rgba(0, 255, 255, 0.2), rgba(0, 0, 255, 0.2), rgba(255, 0, 255, 0.2));
-            border-radius: 8px;
-            pointer-events: none;
-        }
-
-        .quantity-box {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 5px;
-            border-radius: 3px;
-            font-size: 14px;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0, 0, 0);
-            background-color: rgba(0, 0, 0, 0.4);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-body {
-            background-color: #fefefe;
-            padding: 20px;
-            border: 1px solid #888;
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-            border-radius: 8px;
-        }
-
-        /* Card Flip Styles */
-        .card-flip-container {
-            perspective: 1000px;
-            width: 100%;
-            max-width: 300px;
-            margin: 0 auto;
-        }
-
-        .card-flip-inner {
-            position: relative;
-            width: 100%;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-        }
-
-        .card-flip-container.flipped .card-flip-inner {
-            transform: rotateY(180deg);
-        }
-
-        .card-face {
-            position: absolute;
-            width: 100%;
-            backface-visibility: hidden;
-            border-radius: 8px;
-        }
-
-        .card-face.front {
-            z-index: 2;
-        }
-
-        .card-face.back {
-            transform: rotateY(180deg);
-        }
-
-        .flip-button {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .flip-button:hover {
-            background-color: #45a049;
-        }
-
-        #paginationControls {
-            display: none;
-            justify-content: space-between;
-            align-items: center;
-            margin: 20px;
-        }
-
-        #paginationControls button {
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 4px;
-            border: none;
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
-        }
-
-        #paginationControls button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-
-        #paginationControls button:hover:not(:disabled) {
-            background-color: #45a049;
+            color: #333;
         }
     </style>
 </head>
 <body>
-    <h1>MTG Card Search</h1>
-    <form id="search-form">
+    <header>
+        <h1>MTG Card Search</h1>
+    </header>
+    <nav>
+        <a href="#">Home</a>
+        <a href="#">Card Search</a>
+        <a href="#">About</a>
+    </nav>
+
+    <div class="search-container">
         <input type="text" id="query" placeholder="Search for a card">
-        <button id="search-button" type="button">Search</button>
+        <button onclick="searchCards()">Search</button>
         <div id="suggestions"></div>
-    </form>
-
-    <div id="card-results"></div>
-
-    <div id="paginationControls">
-        <button id="prevPage">Previous</button>
-        <span id="pageInfo"></span>
-        <button id="nextPage">Next</button>
     </div>
 
-    <!-- Modal for card details -->
-    <div id="cardModal" class="modal">
-        <div id="modal-body" class="modal-body">
-            <!-- Card details and images will be inserted here -->
+    <div id="cardContainer">
+        <!-- Cards will be dynamically generated here -->
+    </div>
+
+    <div id="cardModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalCardTitle"></h2>
+            <div class="card-flip-container">
+                <img id="modalCardImage" src="" alt="Card Image">
+            </div>
+            <button class="flip-button" onclick="flipCard()">Flip Card</button>
         </div>
     </div>
 
     <script>
-        let collection = [];
-        let filteredCards = [];
-        let currentPage = 1;
-        const entriesPerPage = 50;
+        const collection = [];
 
-        // Load the collection CSV directly from the server
-        fetch('collection.csv')
-            .then(response => response.text())
-            .then(text => parseCSV(text))
-            .then(() => {
-                displayPage(1, collection);
-                updatePagination(collection);
-            })
-            .catch(error => console.error('Error loading the collection:', error));
-
-        function parseCSV(contents) {
-            const rows = contents.split('\n').slice(1); // Skip header
-            collection = rows.map(row => {
-                const columns = row.split(',');
-                return {
-                    name: columns[2].trim(), // Column C: Name
-                    setCode: columns[3].trim(), // Column D: Set Code
-                    collectorNumber: columns[5].trim(), // Column F: Collector Number
-                    foil: columns[6].trim().toLowerCase() === 'foil', // Column G: Foil
-                    quantity: parseInt(columns[8].trim()), // Column I: Quantity
-                    scryfallId: columns[10].trim() // Column K: Scryfall ID
-                };
-            });
-        }
-
-        function displayPage(page, cards) {
-            const cardResults = document.getElementById('card-results');
-            cardResults.innerHTML = '';
-            currentPage = page;
-
-            const startIndex = (page - 1) * entriesPerPage;
-            const endIndex = startIndex + entriesPerPage;
-            const pageEntries = cards.slice(startIndex, endIndex);
-
-            pageEntries.forEach(card => {
-                const apiUrl = `https://api.scryfall.com/cards/${card.scryfallId}`;
-
-                fetch(apiUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 404) {
-                            console.error(`Card not found: ${card.name} in set ${card.setCode}`);
-                            return;
-                        }
-
-                        const cardItem = document.createElement('div');
-                        cardItem.className = 'card-item';
-
-                        let imageUrl;
-                        if (data.image_uris) {
-                            imageUrl = data.image_uris.normal;
-                        } else if (data.card_faces && data.card_faces.length > 0) {
-                            imageUrl = data.card_faces[0].image_uris.normal;
-                        } else {
-                            console.error(`No image found for card: ${card.name}`);
-                            return;
-                        }
-
-                        const image = document.createElement('img');
-                        image.src = imageUrl;
-                        image.alt = card.name;
-                        image.className = 'card-image';
-
-                        cardItem.appendChild(image);
-
-                        if (card.foil) {
-                            const foilOverlay = document.createElement('div');
-                            foilOverlay.className = 'foil-overlay';
-                            cardItem.appendChild(foilOverlay);
-                        }
-
-                        const quantityBox = document.createElement('div');
-                        quantityBox.className = 'quantity-box';
-                        quantityBox.textContent = `x${card.quantity}`;
-                        cardItem.appendChild(quantityBox);
-
-                        cardItem.addEventListener('click', () => showCardDetails(data));
-
-                        cardResults.appendChild(cardItem);
-                    })
-                    .catch(error => console.error('Error fetching card details:', error));
-            });
-        }
-
-        function updatePagination(cards) {
-            const paginationControls = document.getElementById('paginationControls');
-            const totalPages = Math.ceil(cards.length / entriesPerPage);
-            const pageInfo = document.getElementById('pageInfo');
-            const prevPageButton = document.getElementById('prevPage');
-            const nextPageButton = document.getElementById('nextPage');
-
-            if (totalPages > 1) {
-                paginationControls.style.display = 'flex';
-                pageInfo.textContent = `${currentPage} of ${totalPages}`;
-            } else {
-                paginationControls.style.display = 'none';
-            }
-
-            prevPageButton.disabled = currentPage === 1;
-            nextPageButton.disabled = currentPage === totalPages;
-
-            prevPageButton.addEventListener('click', () => {
-                if (currentPage > 1) {
-                    displayPage(currentPage - 1, cards);
-                    updatePagination(cards);
-                }
-            });
-
-            nextPageButton.addEventListener('click', () => {
-                if (currentPage < totalPages) {
-                    displayPage(currentPage + 1, cards);
-                    updatePagination(cards);
+        async function loadCollection() {
+            const response = await fetch('collection.csv');
+            const data = await response.text();
+            const rows = data.split('\n').slice(1);
+            rows.forEach(row => {
+                const cols = row.split(',');
+                if (cols.length > 1) {
+                    const card = {
+                        name: cols[2],
+                        scryfall_id: cols[10],
+                        set_code: cols[3],
+                        quantity: cols[8],
+                        foil: cols[7].trim().toLowerCase() === 'foil',
+                    };
+                    collection.push(card);
+                    const cardElement = document.createElement('div');
+                    cardElement.className = 'card';
+                    cardElement.innerHTML = `
+                        <img src="https://api.scryfall.com/cards/${card.scryfall_id}?format=image" alt="${card.name}">
+                        <div class="quantity-box">x${card.quantity}</div>
+                    `;
+                    cardElement.addEventListener('click', () => showCardDetails(card));
+                    document.getElementById('cardContainer').appendChild(cardElement);
                 }
             });
         }
 
         function showCardDetails(card) {
-            const modalBody = document.getElementById('modal-body');
-            modalBody.innerHTML = ''; // Clear previous content
+            const modalImage = document.getElementById('modalCardImage');
+            const modalTitle = document.getElementById('modalCardTitle');
 
-            const title = document.createElement('h2');
-            title.textContent = card.name;
-            modalBody.appendChild(title);
+            modalTitle.textContent = card.name;
 
-            const cardFlipContainer = document.createElement('div');
-            cardFlipContainer.className = 'card-flip-container';
-            const cardFlipInner = document.createElement('div');
-            cardFlipInner.className = 'card-flip-inner';
-
-            const frontFace = document.createElement('div');
-            frontFace.className = 'card-face front';
-
-            const backFace = document.createElement('div');
-            backFace.className = 'card-face back';
-
-            // Handle single-faced and double-faced cards
-            let imageUrl = null;
             if (card.image_uris && card.image_uris.normal) {
-                // Single-faced card
-                imageUrl = card.image_uris.normal;
-                const image = document.createElement('img');
-                image.src = imageUrl;
-                image.alt = card.name;
-                image.className = 'card-image';
-                frontFace.appendChild(image);
+                modalImage.src = card.image_uris.normal;
+                modalImage.style.display = 'block';
             } else if (card.card_faces && card.card_faces.length > 0) {
-                // Double-faced or transforming card
-                imageUrl = card.card_faces[0].image_uris.normal;
-                const frontImage = document.createElement('img');
-                frontImage.src = imageUrl;
-                frontImage.alt = card.card_faces[0].name;
-                frontImage.className = 'card-image';
-                frontFace.appendChild(frontImage);
-
-                const backImageUrl = card.card_faces[1].image_uris.normal;
-                const backImage = document.createElement('img');
-                backImage.src = backImageUrl;
-                backImage.alt = card.card_faces[1].name;
-                backImage.className = 'card-image';
-                backFace.appendChild(backImage);
+                modalImage.src = card.card_faces[0].image_uris.normal;
+                modalImage.style.display = 'block';
             } else {
-                console.error(`No image available for card: ${card.name}`);
-                return;
+                modalImage.src = `https://api.scryfall.com/cards/${card.scryfall_id}?format=image`;
+                modalImage.style.display = 'block';
             }
-
-            cardFlipInner.appendChild(frontFace);
-            cardFlipInner.appendChild(backFace);
-            cardFlipContainer.appendChild(cardFlipInner);
-            modalBody.appendChild(cardFlipContainer);
-
-            // Add flip button for double-faced cards
-            if (card.card_faces && card.card_faces.length > 0) {
-                const flipButton = document.createElement('button');
-                flipButton.className = 'flip-button';
-                flipButton.textContent = 'Flip Card';
-                flipButton.onclick = function () {
-                    cardFlipContainer.classList.toggle('flipped');
-                };
-                modalBody.appendChild(flipButton);
-            }
-
-            const typeLine = document.createElement('p');
-            typeLine.textContent = card.type_line;
-            modalBody.appendChild(typeLine);
-
-            const oracleText = document.createElement('p');
-            oracleText.textContent = card.oracle_text;
-            modalBody.appendChild(oracleText);
-
-            const setInfo = document.createElement('p');
-            setInfo.innerHTML = `<strong>Set:</strong> ${card.set_name}`;
-            modalBody.appendChild(setInfo);
-
-            const rarityInfo = document.createElement('p');
-            rarityInfo.innerHTML = `<strong>Rarity:</strong> ${card.rarity}`;
-            modalBody.appendChild(rarityInfo);
 
             document.getElementById('cardModal').style.display = 'flex';
+        }
+
+        function flipCard() {
+            // Implement card flipping logic here
+        }
+
+        function closeModal() {
+            document.getElementById('cardModal').style.display = 'none';
         }
 
         document.getElementById('query').addEventListener('input', function () {
@@ -468,27 +303,31 @@
                 } else {
                     suggestions.style.display = 'none';
                 }
+            } else {
+                suggestions.style.display = 'none';
             }
         });
 
-        // Close modal when clicking outside of it
-        window.onclick = function (event) {
-            const modal = document.getElementById('cardModal');
-            if (event.target == modal) {
-                closeModal();
+        async function searchCards(query) {
+            document.getElementById('cardContainer').innerHTML = '';
+            const matchingCards = collection.filter(card => card.name.toLowerCase().includes(query.toLowerCase()));
+            if (matchingCards.length > 0) {
+                matchingCards.forEach(card => {
+                    const cardElement = document.createElement('div');
+                    cardElement.className = 'card';
+                    cardElement.innerHTML = `
+                        <img src="https://api.scryfall.com/cards/${card.scryfall_id}?format=image" alt="${card.name}">
+                        <div class="quantity-box">x${card.quantity}</div>
+                    `;
+                    cardElement.addEventListener('click', () => showCardDetails(card));
+                    document.getElementById('cardContainer').appendChild(cardElement);
+                });
+            } else {
+                document.getElementById('cardContainer').innerHTML = '<p>No cards found.</p>';
             }
         }
 
-        function closeModal() {
-            document.getElementById('cardModal').style.display = 'none';
-        }
-
-        function searchCards(query) {
-            const filteredCards = collection.filter(card => card.name.toLowerCase().includes(query.toLowerCase()));
-            displayPage(1, filteredCards);
-            updatePagination(filteredCards);
-        }
+        document.addEventListener('DOMContentLoaded', loadCollection);
     </script>
 </body>
 </html>
-
