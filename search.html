@@ -7,364 +7,326 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            background-color: #f4f4f4;
             margin: 0;
-            padding: 0;
-        }
-        .search-container {
-            text-align: center;
             padding: 20px;
         }
-        #query {
-            width: 300px;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 16px;
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
         }
-        #searchButton {
+        
+        .search-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .search-container input {
+            padding: 10px;
+            width: 300px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .search-container button {
             padding: 10px 20px;
-            border-radius: 5px;
-            border: 1px solid #4CAF50;
+            font-size: 16px;
+            border: none;
             background-color: #4CAF50;
             color: white;
-            font-size: 16px;
+            border-radius: 4px;
             cursor: pointer;
         }
-        #searchButton:hover {
+        
+        .search-container button:hover {
             background-color: #45a049;
         }
-        #cardContainer {
+        
+        .card-container {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            padding: 20px;
         }
+        
         .card {
-            margin: 10px;
-            padding: 10px;
-            width: 150px;
-            text-align: center;
             background-color: white;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px;
+            width: 200px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             position: relative;
         }
+        
         .card img {
-            width: 100%;
-            height: auto;
-            display: block;
+            max-width: 100%;
+            border-radius: 4px;
         }
+        
         .card .quantity {
             position: absolute;
-            bottom: 5px;
-            right: 5px;
+            bottom: 10px;
+            right: 10px;
             background-color: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 2px 5px;
+            padding: 2px 6px;
             border-radius: 3px;
-            font-size: 12px;
+            font-size: 14px;
         }
-        #pagination {
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-        }
-        #pagination button {
-            padding: 10px 20px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            background-color: white;
-            cursor: pointer;
-            margin: 0 5px;
-        }
-        #pagination button:hover {
-            background-color: #f0f0f0;
-        }
-        /* Modal Styles */
+        
         #cardModal {
             display: none;
             position: fixed;
-            z-index: 1000;
-            left: 0;
             top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            overflow: auto;
             background-color: rgba(0, 0, 0, 0.75);
             justify-content: center;
             align-items: center;
+            z-index: 1000;
         }
-        #cardModalContent {
+        
+        #cardModal .modal-content {
             background-color: white;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 5px;
             text-align: center;
             position: relative;
             max-width: 500px;
-            width: 90%;
-        }
-        #modalCardImage {
             width: 100%;
-            height: auto;
         }
-        #flipCardButton {
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        
+        #cardModal .modal-content img {
+            max-width: 100%;
+            margin-bottom: 10px;
         }
-        #flipCardButton:hover {
-            background-color: #45a049;
-        }
-        .close {
+        
+        #cardModal .modal-content .close {
             position: absolute;
             top: 10px;
-            right: 20px;
-            font-size: 30px;
-            font-weight: bold;
+            right: 10px;
             cursor: pointer;
-            color: #aaa;
+            font-size: 18px;
         }
-        .close:hover {
-            color: black;
+        
+        #cardModal .modal-content button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
         }
-        /* Suggestions Styles */
-        #suggestions {
-            display: none;
-            background-color: white;
-            border: 1px solid #ccc;
-            max-width: 300px;
-            margin: 0 auto;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            max-height: 150px;
-            overflow-y: auto;
+        
+        #cardModal .modal-content button:hover {
+            background-color: #45a049;
         }
-        .suggestion-item {
+        
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .pagination button {
             padding: 10px;
+            margin: 0 5px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            background-color: white;
             cursor: pointer;
         }
-        .suggestion-item:hover {
-            background-color: #f0f0f0;
+        
+        .pagination button:hover {
+            background-color: #f4f4f4;
         }
-        .highlight {
-            font-weight: bold;
+        
+        .pagination button:disabled {
+            color: #ccc;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
 
-    <div class="search-container">
-        <h1>MTG Card Search</h1>
-        <input type="text" id="query" placeholder="Search for a card">
-        <button id="searchButton">Search</button>
-        <div id="suggestions"></div>
+<h1>MTG Card Search</h1>
+
+<div class="search-container">
+    <input type="text" id="query" placeholder="Search for a card">
+    <button id="searchButton">Search</button>
+    <div id="suggestions" class="suggestions"></div>
+</div>
+
+<div id="cardContainer" class="card-container"></div>
+
+<div class="pagination">
+    <button id="prevPage" disabled>Previous</button>
+    <button id="nextPage" disabled>Next</button>
+</div>
+
+<!-- Modal for card details -->
+<div id="cardModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 id="modalCardName"></h2>
+        <img id="modalCardImage" alt="Card Image">
+        <button id="flipButton" onclick="flipCard()">Flip Card</button>
+        <p id="modalCardDetails"></p>
     </div>
+</div>
 
-    <div id="cardContainer"></div>
+<script>
+    let collection = [];
+    let currentPage = 1;
+    let cardsPerPage = 50;
+    let currentCard = null;
+    let isFlipped = false;
 
-    <div id="pagination"></div>
-
-    <!-- Modal for card details -->
-    <div id="cardModal" class="modal">
-        <div id="cardModalContent">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2 id="modalCardTitle"></h2>
-            <img id="modalCardImage" src="" alt="Card Image">
-            <button id="flipCardButton" onclick="flipCard()">Flip Card</button>
-        </div>
-    </div>
-
-    <script>
-        let collection = [];
-        let currentPage = 1;
-        const cardsPerPage = 50;
-        let isFlipped = false;
-        let currentCard = null;
-
-        function loadCollection() {
-            fetch('collection.csv')
-                .then(response => response.text())
-                .then(data => {
-                    const rows = data.split('\n');
-                    rows.forEach((row, index) => {
-                        if (index > 0 && row.trim() !== '') {
-                            const columns = row.split(',');
-                            collection.push({
-                                name: columns[2],
-                                scryfall_id: columns[10].trim(),
-                                quantity: columns[8],
-                                foil: columns[7].trim() === 'foil'
-                            });
-                        }
-                    });
-                    displayCards(collection);
-                })
-                .catch(error => console.error('Error loading collection:', error));
-        }
-
-        function displayCards(cards) {
-            const cardContainer = document.getElementById('cardContainer');
-            cardContainer.innerHTML = '';
-
-            const startIndex = (currentPage - 1) * cardsPerPage;
-            const endIndex = Math.min(startIndex + cardsPerPage, cards.length);
-            const currentCards = cards.slice(startIndex, endIndex);
-
-            currentCards.forEach(card => {
-                const cardElement = document.createElement('div');
-                cardElement.className = 'card';
-                cardElement.onclick = () => showCardDetails(card);
-
-                const cardImage = document.createElement('img');
-                cardImage.src = `https://api.scryfall.com/cards/${card.scryfall_id}?format=image`;
-                cardImage.alt = card.name;
-
-                const quantity = document.createElement('div');
-                quantity.className = 'quantity';
-                quantity.textContent = `x${card.quantity}`;
-
-                cardElement.appendChild(cardImage);
-                cardElement.appendChild(quantity);
-
-                if (card.foil) {
-                    cardImage.style.filter = 'hue-rotate(90deg)';
-                }
-
-                cardContainer.appendChild(cardElement);
+    function loadCollection() {
+        fetch('collection.csv')
+            .then(response => response.text())
+            .then(data => {
+                collection = parseCSV(data);
+                displayCards(collection.slice(0, cardsPerPage));
+                updatePagination();
             });
+    }
 
-            createPagination(cards);
+    function parseCSV(data) {
+        const lines = data.split('\n');
+        const headers = lines[0].split(',');
+        return lines.slice(1).map(line => {
+            const values = line.split(',');
+            const card = {};
+            headers.forEach((header, index) => {
+                card[header.trim()] = values[index].trim();
+            });
+            return card;
+        });
+    }
+
+    function displayCards(cards) {
+        const cardContainer = document.getElementById('cardContainer');
+        cardContainer.innerHTML = '';
+        cards.forEach(card => {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'card';
+            cardElement.innerHTML = `
+                <img src="https://c1.scryfall.com/file/scryfall-cards/normal/front/${card.Scryfall_ID.slice(0, 2)}/${card.Scryfall_ID}.jpg?123" alt="${card.Name}">
+                <div class="quantity">x${card.Quantity}</div>
+            `;
+            cardElement.addEventListener('click', () => showCardDetails(card));
+            cardContainer.appendChild(cardElement);
+        });
+    }
+
+    function updatePagination() {
+        const prevPage = document.getElementById('prevPage');
+        const nextPage = document.getElementById('nextPage');
+        const totalPages = Math.ceil(collection.length / cardsPerPage);
+
+        prevPage.disabled = currentPage === 1;
+        nextPage.disabled = currentPage === totalPages;
+    }
+
+    document.getElementById('prevPage').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            displayCards(collection.slice((currentPage - 1) * cardsPerPage, currentPage * cardsPerPage));
+            updatePagination();
+        }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', () => {
+        const totalPages = Math.ceil(collection.length / cardsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            displayCards(collection.slice((currentPage - 1) * cardsPerPage, currentPage * cardsPerPage));
+            updatePagination();
+        }
+    });
+
+    function showCardDetails(card) {
+        const modalCardName = document.getElementById('modalCardName');
+        const modalCardImage = document.getElementById('modalCardImage');
+        const flipButton = document.getElementById('flipButton');
+        const modalCardDetails = document.getElementById('modalCardDetails');
+
+        modalCardName.textContent = card.Name;
+        currentCard = card;
+        isFlipped = false;
+
+        if (card.Scryfall_ID) {
+            modalCardImage.src = `https://c1.scryfall.com/file/scryfall-cards/normal/front/${card.Scryfall_ID.slice(0, 2)}/${card.Scryfall_ID}.jpg`;
+            flipButton.style.display = 'block';
+        } else {
+            modalCardImage.src = ''; // Fallback in case the image URL is not found
+            flipButton.style.display = 'none';
         }
 
-        function createPagination(cards) {
-            const pagination = document.getElementById('pagination');
-            pagination.innerHTML = '';
+        document.getElementById('cardModal').style.display = 'flex';
+    }
 
-            if (cards.length > cardsPerPage) {
-                const totalPages = Math.ceil(cards.length / cardsPerPage);
+    function closeModal() {
+        document.getElementById('cardModal').style.display = 'none';
+    }
 
-                const prevButton = document.createElement('button');
-                prevButton.textContent = 'Previous';
-                prevButton.disabled = currentPage === 1;
-                prevButton.onclick = () => {
-                    currentPage = Math.max(currentPage - 1, 1);
-                    displayCards(cards);
-                };
-                pagination.appendChild(prevButton);
-
-                const pageInfo = document.createElement('span');
-                pageInfo.textContent = `${currentPage} of ${totalPages}`;
-                pagination.appendChild(pageInfo);
-
-                const nextButton = document.createElement('button');
-                nextButton.textContent = 'Next';
-                nextButton.disabled = currentPage === totalPages;
-                nextButton.onclick = () => {
-                    currentPage = Math.min(currentPage + 1, totalPages);
-                    displayCards(cards);
-                };
-                pagination.appendChild(nextButton);
-            }
-        }
-
-        function showCardDetails(card) {
-            currentCard = card; // Set the current card object
+    function flipCard() {
+        if (currentCard && currentCard.card_faces) {
             const modalImage = document.getElementById('modalCardImage');
-            const modalTitle = document.getElementById('modalCardTitle');
-            const flipButton = document.getElementById('flipCardButton');
 
-            modalTitle.textContent = card.name;
-
-            if (card.card_faces) {
-                modalImage.src = card.card_faces[0].image_uris.normal;
-                isFlipped = false;
-
-                if (card.card_faces.length > 1) {
-                    flipButton.style.display = 'block';
-                } else {
-                    flipButton.style.display = 'none';
-                }
-            } else if (card.image_uris) {
-                modalImage.src = card.image_uris.normal;
-                isFlipped = false;
-                flipButton.style.display = 'none';
+            if (isFlipped) {
+                modalImage.src = currentCard.card_faces[0].image_uris.normal;
             } else {
-                modalImage.src = ''; // Fallback in case the image URL is not found
-                flipButton.style.display = 'none';
+                modalImage.src = currentCard.card_faces[1].image_uris.normal;
             }
 
-            document.getElementById('cardModal').style.display = 'flex';
+            isFlipped = !isFlipped;
         }
+    }
 
-        function closeModal() {
-            document.getElementById('cardModal').style.display = 'none';
-        }
-
-        function flipCard() {
-            if (currentCard && currentCard.card_faces) {
-                const modalImage = document.getElementById('modalCardImage');
-
-                if (isFlipped) {
-                    modalImage.src = currentCard.card_faces[0].image_uris.normal;
-                } else {
-                    modalImage.src = currentCard.card_faces[1].image_uris.normal;
-                }
-
-                isFlipped = !isFlipped;
-            }
-        }
-
-        document.getElementById('query').addEventListener('input', function () {
-            const query = this.value.toLowerCase();
-            const suggestions = document.getElementById('suggestions');
-            suggestions.innerHTML = '';
-            if (query.length > 0) {
-                const matchingCards = collection.filter(card => card.name.toLowerCase().startsWith(query));
-                if (matchingCards.length > 0) {
-                    suggestions.style.display = 'block';
-                    matchingCards.forEach(card => {
-                        const suggestionItem = document.createElement('div');
-                        suggestionItem.className = 'suggestion-item';
-                        suggestionItem.innerHTML = `<span class="highlight">${card.name.substring(0, query.length)}</span>${card.name.substring(query.length)}`;
-                        suggestionItem.addEventListener('click', () => {
-                            document.getElementById('query').value = card.name;
-                            suggestions.style.display = 'none';
-                            searchCards(card.name);
-                        });
-                        suggestions.appendChild(suggestionItem);
+    document.getElementById('query').addEventListener('input', function () {
+        const query = this.value.toLowerCase();
+        const suggestions = document.getElementById('suggestions');
+        suggestions.innerHTML = '';
+        if (query.length > 0) {
+            const matchingCards = collection.filter(card => card.Name.toLowerCase().startsWith(query));
+            if (matchingCards.length > 0) {
+                suggestions.style.display = 'block';
+                matchingCards.forEach(card => {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.className = 'suggestion-item';
+                    suggestionItem.innerHTML = `<span class="highlight">${card.Name.substring(0, query.length)}</span>${card.Name.substring(query.length)}`;
+                    suggestionItem.addEventListener('click', () => {
+                        document.getElementById('query').value = card.Name;
+                        suggestions.style.display = 'none';
+                        searchCards(card.Name);
                     });
-                } else {
-                    suggestions.style.display = 'none';
-                }
+                    suggestions.appendChild(suggestionItem);
+                });
             } else {
                 suggestions.style.display = 'none';
             }
-        });
-
-        function searchCards(query) {
-            const filteredCards = collection.filter(card => card.name.toLowerCase().includes(query.toLowerCase()));
-            displayCards(filteredCards);
+        } else {
+            suggestions.style.display = 'none';
         }
+    });
 
-        document.addEventListener('click', function (event) {
-            const suggestions = document.getElementById('suggestions');
-            const queryInput = document.getElementById('query');
-            if (!suggestions.contains(event.target) && event.target !== queryInput) {
-                suggestions.style.display = 'none';
-            }
-        });
+    function searchCards(query) {
+        const results = collection.filter(card => card.Name.toLowerCase().includes(query.toLowerCase()));
+        displayCards(results.slice(0, cardsPerPage));
+        currentPage = 1;
+        updatePagination();
+    }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            loadCollection();
-        });
-    </script>
+    // Load the collection on page load
+    loadCollection();
+</script>
 
 </body>
 </html>
