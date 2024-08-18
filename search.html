@@ -445,28 +445,30 @@
             const backFace = document.createElement('div');
             backFace.className = 'card-face back';
 
+            let imageUrl;
+
             if (card.image_uris) {
                 // Single-faced card
+                imageUrl = card.image_uris.normal;
+                console.log('Single-faced card image URL:', imageUrl);
                 const image = document.createElement('img');
-                image.src = card.image_uris.normal;
+                image.src = imageUrl;
                 image.alt = card.name;
-                image.style.display = "block";
-                image.style.margin = "0 auto"; // Center the image
                 frontFace.appendChild(image);
             } else if (card.card_faces && card.card_faces.length > 0) {
                 // Double-faced or transforming card
+                const frontImageUrl = card.card_faces[0].image_uris.normal;
+                console.log('Front face image URL:', frontImageUrl);
                 const frontImage = document.createElement('img');
-                frontImage.src = card.card_faces[0].image_uris.normal;
+                frontImage.src = frontImageUrl;
                 frontImage.alt = card.card_faces[0].name;
-                frontImage.style.display = "block";
-                frontImage.style.margin = "0 auto"; // Center the image
                 frontFace.appendChild(frontImage);
 
+                const backImageUrl = card.card_faces[1].image_uris.normal;
+                console.log('Back face image URL:', backImageUrl);
                 const backImage = document.createElement('img');
-                backImage.src = card.card_faces[1].image_uris.normal;
+                backImage.src = backImageUrl;
                 backImage.alt = card.card_faces[1].name;
-                backImage.style.display = "block";
-                backImage.style.margin = "0 auto"; // Center the image
                 backFace.appendChild(backImage);
             } else {
                 console.error(`No image available for card: ${card.name}`);
@@ -504,6 +506,7 @@
 
             document.getElementById('cardModal').style.display = 'flex';
         }
+
 
         function closeModal() {
             document.getElementById('cardModal').style.display = 'none';
