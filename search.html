@@ -239,7 +239,7 @@
             <div class="card-flip-container">
                 <img id="modalCardImage" src="" alt="Card Image">
             </div>
-            <button class="flip-button" onclick="flipCard()">Flip Card</button>
+            <button id="flipButton" class="flip-button" onclick="flipCard()">Flip Card</button>
         </div>
     </div>
 
@@ -248,6 +248,7 @@
         let currentPage = 1;
         const cardsPerPage = 50;
         let isFlipped = false;
+        let currentCard = null; // To store the current card object
 
         async function loadCollection() {
             const response = await fetch('collection.csv');
@@ -294,70 +295,71 @@
                 const prevButton = document.createElement('button');
                 prevButton.textContent = 'Previous';
                 prevButton.addEventListener('click', () => {
-                    currentPage--;
-                    displayCards(cards);
-                });
-                pagination.appendChild(prevButton);
+                        currentPage--;
+                        displayCards(cards);
+                    });
+                    pagination.appendChild(prevButton);
+                }
+                
+                if (cards.length > currentPage * cardsPerPage) {
+                    const nextButton = document.createElement('button');
+                    nextButton.textContent = 'Next';
+                    nextButton.addEventListener('click', () => {
+                        currentPage++;
+                        displayCards(cards);
+                    });
+                    pagination.appendChild(nextButton);
+                }
+                
+                document.getElementById('cardContainer').appendChild(pagination);
             }
 
-            if (cards.length > endIndex) {
-                const nextButton = document.createElement('button');
-                nextButton.textContent = 'Next';
-                nextButton.addEventListener('click', () => {
-                    currentPage++;
-                    displayCards(cards);
-                });
-                pagination.appendChild(nextButton);
-            }
+            function showCardDetails(card) {
+                currentCard = card; // Set the current card object
+                const modalImage = document.getElementById('modalCardImage');
+                const modalTitle = document.getElementById('modalCardTitle');
 
-            document.getElementById('cardContainer').appendChild(pagination);
-        }
+                modalTitle.textContent = card.name;
 
-        function showCardDetails(card) {
-            const modalImage = document.getElementById('modalCardImage');
-            const modalTitle = document.getElementById('modalCardTitle');
+                if (card.scryfall_id) {
+                    modalImage.src = `https://api.scryfall.com/cards/${card.scryfall_id}?format=image`;
+                    modalImage.style.display = 'block';
+                }
 
-            modalTitle.textContent = card.name;
-
-            if (card.name && card.name.toLowerCase()) {
-                modalImage.src = `https://api.scryfall.com/cards/${card.scryfall_id}?format=image`;
-                modalImage.style.display = 'block';
-            }
-
-            isFlipped = false;
-            document.getElementById('cardModal').style.display = 'flex';
-        }
-
-        function flipCard() {
-            const modalImage = document.getElementById('modalCardImage');
-            if (!isFlipped) {
-                modalImage.src = `https://api.scryfall.com/cards/${card.scryfall_id}/transform?format=image`;
-                isFlipped = true;
-            } else {
-                modalImage.src = `https://api.scryfall.com/cards/${card.scryfall_id}?format=image`;
                 isFlipped = false;
+                document.getElementById('cardModal').style.display = 'flex';
             }
-        }
 
-        function closeModal() {
-            document.getElementById('cardModal').style.display = 'none';
-        }
-
-        function searchCards(query) {
-            if (!query) {
-                query = document.getElementById('query').value.toLowerCase();
+            function flipCard() {
+                const modalImage = document.getElementById('modalCardImage');
+                if (!isFlipped && currentCard) {
+                    modalImage.src = `https://api.scryfall.com/cards/${currentCard.scryfall_id}/transform?format=image`;
+                    isFlipped = true;
+                } else if (currentCard) {
+                    modalImage.src = `https://api.scryfall.com/cards/${currentCard.scryfall_id}?format=image`;
+                    isFlipped = false;
+                }
             }
-            document.getElementById('cardContainer').innerHTML = '';
-            const matchingCards = collection.filter(card => card.name && card.name.toLowerCase().includes(query));
-            if (matchingCards.length > 0) {
-                currentPage = 1; // Reset to first page
-                displayCards(matchingCards);
-            } else {
-                document.getElementById('cardContainer').innerHTML = '<p>No cards found.</p>';
-            }
-        }
 
-        document.addEventListener('DOMContentLoaded', loadCollection);
-    </script>
-</body>
+            function closeModal() {
+                document.getElementById('cardModal').style.display = 'none';
+            }
+
+            function searchCards(query) {
+                if (!query) {
+                    query = document.getElementById('query').value.toLowerCase();
+                }
+                document.getElementById('cardContainer').innerHTML = '';
+                const matchingCards = collection.filter(card => card.name && card.name.toLowerCase().includes(query));
+                if (matchingCards.length > 0) {
+                    currentPage = 1; // Reset to first page
+                    displayCards(matchingCards);
+                } else {
+                    document.getElementById('cardContainer').innerHTML = '<p>No cards found.</p>';
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', loadCollection);
+        </script>
+    </body>
 </html>
