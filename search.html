@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -208,52 +207,42 @@
         }
     </style>
 </head>
-
 <body>
-    <header>
-        MTG Card Search
-    </header>
-
-    <div class="container">
-        <h1>MTG Card Search</h1>
-        <div class="search-container">
-            <input type="text" id="query" placeholder="Search for a card">
-            <input type="submit" value="Search" onclick="searchCards()">
-            <div id="suggestions"></div>
-        </div>
-
-        <div id="cardContainer" class="card-grid">
-            <!-- Cards will be dynamically loaded here -->
-        </div>
-
-        <div class="pagination">
-            <button id="prevPage" onclick="changePage(-1)">Previous</button>
-            <button id="nextPage" onclick="changePage(1)">Next</button>
-        </div>
-    </div>
+    <h1>MTG Card Search</h1>
+    <input type="text" id="query" placeholder="Search for a card">
+    <button id="searchBtn">Search</button>
+    
+    <div id="suggestions"></div>
+    <div id="cardContainer" class="grid-container"></div>
+    
+    <button id="prevPage">Previous</button>
+    <button id="nextPage">Next</button>
 
     <!-- Modal for card details -->
     <div id="cardModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2 id="cardTitle">Card Title</h2>
-            <img id="cardImage" src="" alt="Card Image">
-            <p id="cardText"></p>
-            <button id="flipButton" onclick="flipCard()">Flip Card</button>
-        </div>
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 id="cardTitle"></h2>
+        <img id="cardImage" src="" alt="Card Image">
+        <p id="cardText"></p>
+        <button id="flipButton" style="display: none;" onclick="flipCard()">Flip Card</button>
     </div>
 
     <script>
-        let collection = []; // This should be replaced with the actual collection data from the CSV
+        let collection = [];
         let currentPage = 1;
         const cardsPerPage = 25;
+
+        document.getElementById('searchBtn').addEventListener('click', function () {
+            const query = document.getElementById('query').value.toLowerCase();
+            searchCards(query);
+        });
 
         document.getElementById('query').addEventListener('input', function () {
             const query = this.value.toLowerCase();
             const suggestions = document.getElementById('suggestions');
             suggestions.innerHTML = '';
             if (query.length > 0) {
-                const matchingCards = collection.filter(card => card.Name.toLowerCase().startsWith(query)).slice(0, 25); // Limit to 25 results
+                const matchingCards = collection.filter(card => card.Name.toLowerCase().startsWith(query));
                 if (matchingCards.length > 0) {
                     suggestions.style.display = 'block';
                     matchingCards.forEach(card => {
@@ -275,10 +264,10 @@
             }
         });
 
-        function searchCards(query = '') {
-            const filteredCards = collection.filter(card => card.Name.toLowerCase().includes(query.toLowerCase())).slice(0, 25);
+        function searchCards(query) {
+            const matchingCards = collection.filter(card => card.Name.toLowerCase().includes(query));
+            displayCards(matchingCards.slice(0, cardsPerPage));
             currentPage = 1;
-            displayCards(filteredCards.slice(0, cardsPerPage));
             updatePagination();
         }
 
@@ -286,90 +275,100 @@
             const cardContainer = document.getElementById('cardContainer');
             cardContainer.innerHTML = '';
             cards.forEach(card => {
-                const cardDiv = document.createElement('div');
-                cardDiv.className = 'card-container';
-                cardDiv.innerHTML = `
-                    <img src="${card.imageUrl}" alt="${card.Name}">
-                    ${card.foil === 'foil' ? '<div class="foil-card"></div>' : ''}
-                    <div class="quantity-badge">x${card.Quantity}</div>
-                `;
-                cardDiv.addEventListener('click', () => showCardDetails(card));
-                cardContainer.appendChild(cardDiv);
+                fetch(`https://api.scryfall.com/cards/${card.ScryfallID}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const cardElement = document.createElement('div');
+                        cardElement.className = 'card';
+                        cardElement.innerHTML = `
+                            <img src="${data.image_uris.normal}" alt="${card.Name}">
+                            <div class="card-info">
+                                <h3>${card.Name}</h3>
+                                <p>Set: ${card['Set code']}</p>
+                                <p>Quantity: ${card.Quantity}</p>
+                            </div>`;
+                        cardElement.addEventListener('click', () => showCardDetails(card, data));
+                        cardContainer.appendChild(cardElement);
+                    })
+                    .catch(error => console.error('Error fetching card details:', error));
             });
         }
 
-        function changePage(direction) {
-            currentPage += direction;
-            // Fetch and display the appropriate page's worth of cards
+        function paginate(direction) {
+            if (direction === 'next') {
+                currentPage++;
+            } else if (direction === 'prev') {
+                currentPage--;
+            }
             const startIndex = (currentPage - 1) * cardsPerPage;
             const endIndex = startIndex + cardsPerPage;
-displayCards(collection.slice(startIndex, endIndex));
-updatePagination();
-}
+            displayCards(collection.slice(startIndex, endIndex));
+            updatePagination();
+        }
 
-function updatePagination() {
-const totalCards = collection.length;
-const totalPages = Math.ceil(totalCards / cardsPerPage);
-document.getElementById('prevPage').style.display = currentPage > 1 ? 'inline-block' : 'none';
-document.getElementById('nextPage').style.display = currentPage < totalPages ? 'inline-block' : 'none';
-}
+        function updatePagination() {
+            const totalCards = collection.length;
+            const totalPages = Math.ceil(totalCards / cardsPerPage);
+            document.getElementById('prevPage').style.display = currentPage > 1 ? 'inline-block' : 'none';
+            document.getElementById('nextPage').style.display = currentPage < totalPages ? 'inline-block' : 'none';
+        }
 
-function showCardDetails(card) {
-const modal = document.getElementById('cardModal');
-const cardImage = document.getElementById('cardImage');
-const cardTitle = document.getElementById('cardTitle');
-const cardText = document.getElementById('cardText');
-const flipButton = document.getElementById('flipButton');
+        function showCardDetails(card, data) {
+            const modal = document.getElementById('cardModal');
+            const cardImage = document.getElementById('cardImage');
+            const cardTitle = document.getElementById('cardTitle');
+            const cardText = document.getElementById('cardText');
+            const flipButton = document.getElementById('flipButton');
 
-cardTitle.textContent = card.Name;
-cardImage.src = card.imageUrl; // Set the main image URL
-cardText.textContent = `${card.Description || ''}`;
+            cardTitle.textContent = data.name;
+            cardImage.src = data.image_uris.normal; // Set the main image URL
+            cardText.textContent = `${data.oracle_text || ''}`;
 
-if (card.card_faces && card.card_faces.length > 1) {
-flipButton.style.display = 'block';
-} else {
-flipButton.style.display = 'none';
-}
+            if (data.card_faces && data.card_faces.length > 1) {
+                flipButton.style.display = 'block';
+            } else {
+                flipButton.style.display = 'none';
+            }
 
-modal.style.display = 'flex';
-}
+            modal.style.display = 'flex';
+        }
 
-function closeModal() {
-document.getElementById('cardModal').style.display = 'none';
-}
+        function closeModal() {
+            document.getElementById('cardModal').style.display = 'none';
+        }
 
-function flipCard() {
-const cardImage = document.getElementById('cardImage');
-const card = collection.find(card => card.imageUrl === cardImage.src);
-if (card && card.card_faces && card.card_faces.length > 1) {
-const currentFace = card.card_faces.find(face => face.image_uris.normal === cardImage.src);
-const nextFace = card.card_faces.find(face => face.image_uris.normal !== cardImage.src);
-cardImage.src = nextFace.image_uris.normal;
-}
-}
+        function flipCard() {
+            const cardImage = document.getElementById('cardImage');
+            const card = collection.find(card => card.imageUrl === cardImage.src);
+            if (card && card.card_faces && card.card_faces.length > 1) {
+                const currentFace = card.card_faces.find(face => face.image_uris.normal === cardImage.src);
+                const nextFace = card.card_faces.find(face => face.image_uris.normal !== cardImage.src);
+                cardImage.src = nextFace.image_uris.normal;
+            }
+        }
 
-// Load initial collection and display first page
-window.onload = () => {
-fetch('collection.csv')
-.then(response => response.text())
-.then(csvText => {
-collection = csvToJSON(csvText); // Convert the CSV to a JSON array
-displayCards(collection.slice(0, cardsPerPage)); // Display the first 25 cards
-updatePagination(); // Set up the pagination
-});
-};
+        // Load initial collection and display first page
+        window.onload = () => {
+            fetch('collection.csv')
+                .then(response => response.text())
+                .then(csvText => {
+                    collection = csvToJSON(csvText); // Convert the CSV to a JSON array
+                    displayCards(collection.slice(0, cardsPerPage)); // Display the first 25 cards
+                    updatePagination(); // Set up the pagination
+                });
+        };
 
-function csvToJSON(csvText) {
-const lines = csvText.split('\n');
-const headers = lines[0].split(',');
-return lines.slice(1).map(line => {
-const values = line.split(',');
-return headers.reduce((object, header, index) => {
-object[header.trim()] = values[index].trim();
-return object;
-}, {});
-});
-}
-</script>
+        function csvToJSON(csvText) {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',');
+            return lines.slice(1).map(line => {
+                const values = line.split(',');
+                return headers.reduce((object, header, index) => {
+                    object[header.trim()] = values[index].trim();
+                    return object;
+                }, {});
+            });
+        }
+    </script>
 </body>
 </html>
