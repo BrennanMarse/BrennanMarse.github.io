@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MTG Card Search</title>
     <style>
+        /* Same CSS as provided before */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -225,6 +226,8 @@
 
     <script>
         const collection = [];
+        let currentPage = 1;
+        const cardsPerPage = 50;
 
         async function loadCollection() {
             const response = await fetch('collection.csv');
@@ -241,15 +244,26 @@
                         foil: cols[7].trim().toLowerCase() === 'foil',
                     };
                     collection.push(card);
-                    const cardElement = document.createElement('div');
-                    cardElement.className = 'card';
-                    cardElement.innerHTML = `
-                        <img src="https://api.scryfall.com/cards/${card.scryfall_id}?format=image" alt="${card.name}">
-                        <div class="quantity-box">x${card.quantity}</div>
-                    `;
-                    cardElement.addEventListener('click', () => showCardDetails(card));
-                    document.getElementById('cardContainer').appendChild(cardElement);
                 }
+            });
+            displayCards();
+        }
+
+        function displayCards() {
+            const startIndex = (currentPage - 1) * cardsPerPage;
+            const endIndex = startIndex + cardsPerPage;
+            const cardsToDisplay = collection.slice(startIndex, endIndex);
+
+            document.getElementById('cardContainer').innerHTML = '';
+            cardsToDisplay.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.innerHTML = `
+                    <img src="https://api.scryfall.com/cards/${card.scryfall_id}?format=image" alt="${card.name}">
+                    <div class="quantity-box">x${card.quantity}</div>
+                `;
+                cardElement.addEventListener('click', () => showCardDetails(card));
+                document.getElementById('cardContainer').appendChild(cardElement);
             });
         }
 
@@ -259,13 +273,7 @@
 
             modalTitle.textContent = card.name;
 
-            if (card.image_uris && card.image_uris.normal) {
-                modalImage.src = card.image_uris.normal;
-                modalImage.style.display = 'block';
-            } else if (card.card_faces && card.card_faces.length > 0) {
-                modalImage.src = card.card_faces[0].image_uris.normal;
-                modalImage.style.display = 'block';
-            } else {
+            if (card.name && card.name.toLowerCase()) {
                 modalImage.src = `https://api.scryfall.com/cards/${card.scryfall_id}?format=image`;
                 modalImage.style.display = 'block';
             }
@@ -281,53 +289,67 @@
             document.getElementById('cardModal').style.display = 'none';
         }
 
-        document.getElementById('query').addEventListener('input', function () {
-            const query = this.value.toLowerCase();
-            const suggestions = document.getElementById('suggestions');
-            suggestions.innerHTML = '';
-            if (query.length > 0) {
-                const matchingCards = collection.filter(card => card.name.toLowerCase().startsWith(query));
-                if (matchingCards.length > 0) {
-                    suggestions.style.display = 'block';
-                    matchingCards.forEach(card => {
-                        const suggestionItem = document.createElement('div');
-                        suggestionItem.className = 'suggestion-item';
-                        suggestionItem.innerHTML = `<span class="highlight">${card.name.substring(0, query.length)}</span>${card.name.substring(query.length)}`;
-                        suggestionItem.addEventListener('click', () => {
-                            document.getElementById('query').value = card.name;
-                            suggestions.style.display = 'none';
-                            searchCards(card.name);
-                        });
-                        suggestions.appendChild(suggestionItem);
-                    });
-                } else {
-                    suggestions.style.display = 'none';
-                }
-            } else {
-                suggestions.style.display = 'none';
+        function searchCards(query) {
+            if (!query) {
+                query = document.getElementById('query').value.toLowerCase();
             }
-        });
-
-        async function searchCards(query) {
             document.getElementById('cardContainer').innerHTML = '';
-            const matchingCards = collection.filter(card => card.name.toLowerCase().includes(query.toLowerCase()));
+            const matchingCards = collection.filter(card => card.name && card.name.toLowerCase().includes(query));
             if (matchingCards.length > 0) {
-                matchingCards.forEach(card => {
-                    const cardElement = document.createElement('div');
-                    cardElement.className = 'card';
-                    cardElement.innerHTML = `
-                        <img src="https://api.scryfall.com/cards/${card.scryfall_id}?format=image" alt="${card.name}">
-                        <div class="quantity-box">x${card.quantity}</div>
-                    `;
-                    cardElement.addEventListener('click', () => showCardDetails(card));
-                    document.getElementById('cardContainer').appendChild(cardElement);
-                });
+                currentPage = 1; // Reset to first page
+                collection.length = matchingCards.length;
+                displayCards(matchingCards);
             } else {
                 document.getElementById('cardContainer').innerHTML = '<p>No cards found.</p>';
             }
+        }
+
+        function displayCards(cards = collection) {
+            const startIndex = (currentPage - 1) * cardsPerPage;
+            const endIndex = startIndex + cardsPerPage;
+            const cardsToDisplay = cards.slice(startIndex, endIndex);
+
+            document.getElementById('cardContainer').innerHTML = '';
+            cardsToDisplay.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.innerHTML = `
+                    <img src="https://api.scryfall.com/cards/${card.scryfall_id}?format=image" alt="${card.name}">
+                    <div class="quantity-box">x${card.quantity}</div>
+                `;
+                cardElement.addEventListener('click', () => showCardDetails(card));
+                document.getElementById('cardContainer').appendChild(cardElement);
+            });
+
+            // Pagination controls
+            const pagination = document.createElement('div');
+            pagination.className = 'pagination-controls';
+
+            if (currentPage > 1) {
+                const prevButton = document.createElement('button');
+                prevButton.textContent = 'Previous';
+                prevButton.addEventListener('click', () => {
+                    currentPage--;
+                    displayCards(cards);
+                });
+                pagination.appendChild(prevButton);
+            }
+
+            if (cards.length > endIndex) {
+                const nextButton = document.createElement('button');
+                nextButton.textContent = 'Next';
+                nextButton.addEventListener('click', () => {
+                    currentPage++;
+                    displayCards(cards);
+                });
+                pagination.appendChild(nextButton);
+            }
+
+            document.getElementById('cardContainer').appendChild(pagination);
         }
 
         document.addEventListener('DOMContentLoaded', loadCollection);
     </script>
 </body>
 </html>
+
