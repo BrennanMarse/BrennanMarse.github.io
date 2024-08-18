@@ -303,74 +303,73 @@
             // Fetch and display the appropriate page's worth of cards
             const startIndex = (currentPage - 1) * cardsPerPage;
             const endIndex = startIndex + cardsPerPage;
-            displayCards(collection.slice(startIndex, endIndex));
-            updatePagination();
-        }
+displayCards(collection.slice(startIndex, endIndex));
+updatePagination();
+}
 
-        function updatePagination() {
-            const totalCards = collection.length;
-            const totalPages = Math.ceil(totalCards / cardsPerPage);
-            document.getElementById('prevPage').style.display = currentPage > 1 ? 'inline-block' : 'none';
-            document.getElementById('nextPage').style.display = currentPage < totalPages ? 'inline-block' : 'none';
-        }
+function updatePagination() {
+const totalCards = collection.length;
+const totalPages = Math.ceil(totalCards / cardsPerPage);
+document.getElementById('prevPage').style.display = currentPage > 1 ? 'inline-block' : 'none';
+document.getElementById('nextPage').style.display = currentPage < totalPages ? 'inline-block' : 'none';
+}
 
-        function showCardDetails(card) {
-            const modal = document.getElementById('cardModal');
-            const cardImage = document.getElementById('cardImage');
-            const cardTitle = document.getElementById('cardTitle');
-            const cardText = document.getElementById('cardText');
-            const flipButton = document.getElementById('flipButton');
+function showCardDetails(card) {
+const modal = document.getElementById('cardModal');
+const cardImage = document.getElementById('cardImage');
+const cardTitle = document.getElementById('cardTitle');
+const cardText = document.getElementById('cardText');
+const flipButton = document.getElementById('flipButton');
 
-            cardTitle.textContent = card.Name;
-            cardImage.src = card.imageUrl; // Set the main image URL
-            cardText.textContent = `${card.Description || ''}`;
-            
-            if (card.card_faces && card.card_faces.length > 1) {
-                flipButton.style.display = 'block';
-            } else {
-                flipButton.style.display = 'none';
-            }
-            
-            modal.style.display = 'flex';
-        }
+cardTitle.textContent = card.Name;
+cardImage.src = card.imageUrl; // Set the main image URL
+cardText.textContent = `${card.Description || ''}`;
 
-        function closeModal() {
-            document.getElementById('cardModal').style.display = 'none';
-        }
+if (card.card_faces && card.card_faces.length > 1) {
+flipButton.style.display = 'block';
+} else {
+flipButton.style.display = 'none';
+}
 
-        function flipCard() {
-            const cardImage = document.getElementById('cardImage');
-            const card = collection.find(card => card.imageUrl === cardImage.src);
-            if (card && card.card_faces && card.card_faces.length > 1) {
-                const currentFace = card.card_faces.find(face => face.image_uris.normal === cardImage.src);
-                const nextFace = card.card_faces.find(face => face.image_uris.normal !== cardImage.src);
-                cardImage.src = nextFace.image_uris.normal;
-            }
-        }
+modal.style.display = 'flex';
+}
 
-        // Load initial collection and display first page
-        window.onload = () => {
-            fetch('collection.csv')
-                .then(response => response.text())
-                .then(csvText => {
-                    collection = csvToJSON(csvText); // Convert the CSV to a JSON array
-                    displayCards(collection.slice(0, cardsPerPage)); // Display the first 25 cards
-                    updatePagination(); // Set up the pagination
-                });
-        };
+function closeModal() {
+document.getElementById('cardModal').style.display = 'none';
+}
 
-        function csvToJSON(csvText) {
-            const lines = csvText.split('\n');
-            const headers = lines[0].split(',');
-            return lines.slice(1).map(line => {
-                const values = line.split(',');
-                return headers.reduce((object, header, index) => {
-                    object[header.trim()] = values[index].trim();
-                    return object;
-                }, {});
-            });
-        }
-    </script>
+function flipCard() {
+const cardImage = document.getElementById('cardImage');
+const card = collection.find(card => card.imageUrl === cardImage.src);
+if (card && card.card_faces && card.card_faces.length > 1) {
+const currentFace = card.card_faces.find(face => face.image_uris.normal === cardImage.src);
+const nextFace = card.card_faces.find(face => face.image_uris.normal !== cardImage.src);
+cardImage.src = nextFace.image_uris.normal;
+}
+}
+
+// Load initial collection and display first page
+window.onload = () => {
+fetch('collection.csv')
+.then(response => response.text())
+.then(csvText => {
+collection = csvToJSON(csvText); // Convert the CSV to a JSON array
+displayCards(collection.slice(0, cardsPerPage)); // Display the first 25 cards
+updatePagination(); // Set up the pagination
+});
+};
+
+function csvToJSON(csvText) {
+const lines = csvText.split('\n');
+const headers = lines[0].split(',');
+return lines.slice(1).map(line => {
+const values = line.split(',');
+return headers.reduce((object, header, index) => {
+object[header.trim()] = values[index].trim();
+return object;
+}, {});
+});
+}
+</script>
 </body>
-
 </html>
