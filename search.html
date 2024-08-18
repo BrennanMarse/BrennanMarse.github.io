@@ -300,8 +300,18 @@
                         const cardItem = document.createElement('div');
                         cardItem.className = 'card-item';
 
+                        let imageUrl;
+                        if (data.image_uris) {
+                            imageUrl = data.image_uris.normal;
+                        } else if (data.card_faces && data.card_faces.length > 0) {
+                            imageUrl = data.card_faces[0].image_uris.normal; // Use the image of the first face
+                        } else {
+                            console.error(`No image found for card: ${card.name}`);
+                            return;
+                        }
+
                         const image = document.createElement('img');
-                        image.src = data.image_uris.normal;
+                        image.src = imageUrl;
                         image.alt = card.name;
                         image.className = 'card-image';
 
@@ -325,6 +335,7 @@
                     .catch(error => console.error('Error fetching card details:', error));
             });
         }
+
 
 
         function updatePagination(cards) {
