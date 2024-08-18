@@ -449,7 +449,7 @@
                 backFace.className = 'card-face back';
 
                 // Handle single-faced and double-faced cards
-                if (card.image_uris) {
+                if (card.image_uris && card.image_uris.normal) {
                     // Single-faced card
                     const image = document.createElement('img');
                     image.src = card.image_uris.normal;
@@ -505,6 +505,7 @@
 
                 document.getElementById('cardModal').style.display = 'flex';
             }
+
 
         
             function closeModal() {
